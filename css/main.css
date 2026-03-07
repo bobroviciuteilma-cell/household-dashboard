@@ -2208,6 +2208,46 @@ body {
    ADMIN PANEL — Personal Dashboard (?admin mode)
    ═══════════════════════════════════════════════════════════════ */
 
+/* --- PIN Lock Screen --- */
+.pin-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: var(--color-surface, #f5f3ef);
+}
+.pin-box {
+  background: white;
+  padding: var(--sp-8, 2rem) var(--sp-10, 2.5rem);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+  text-align: center;
+  max-width: 320px;
+  width: 100%;
+}
+.pin-box h2 { margin-bottom: var(--sp-2, 0.5rem); font-size: 1.5rem; }
+.pin-box p { color: var(--color-text-muted, #888); margin-bottom: var(--sp-4, 1rem); font-size: var(--fs-sm, 0.875rem); }
+.pin-box input {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  font-size: 1.25rem;
+  text-align: center;
+  letter-spacing: 0.3em;
+  border: 2px solid var(--color-border, #e0e0e0);
+  border-radius: var(--radius-md, 8px);
+  margin-bottom: var(--sp-3, 0.75rem);
+  outline: none;
+  box-sizing: border-box;
+}
+.pin-box input:focus { border-color: var(--color-primary, #4361ee); }
+.pin-box .btn-admin {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+}
+.pin-error { color: #dc2626; font-size: var(--fs-sm, 0.875rem); margin-top: var(--sp-2, 0.5rem); }
+
 /* Override body grid in admin mode — body becomes a simple stack */
 body.admin-mode {
   display: block;

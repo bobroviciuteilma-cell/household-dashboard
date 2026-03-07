@@ -55,12 +55,51 @@ class DashboardApp {
     this.handleRoute();
     window.addEventListener('hashchange', () => this.handleRoute());
 
-    // Admin mode: wrap existing dashboard in personal panel
+    // Admin mode: PIN-protected personal panel
     if (this.isAdmin) {
-      this.adminPanel = new AdminPanel(this);
-      this.adminPanel.init();
-      document.body.classList.add('admin-mode');
+      const PIN_HASH = '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4'; // SHA-256 of PIN
+      const unlocked = sessionStorage.getItem('admin-unlocked') === 'yes';
+      if (unlocked) {
+        this.adminPanel = new AdminPanel(this);
+        this.adminPanel.init();
+        document.body.classList.add('admin-mode');
+      } else {
+        this.showPinScreen(PIN_HASH);
+      }
     }
+  }
+
+  // === PIN Screen ===
+  showPinScreen(pinHash) {
+    document.body.innerHTML = `
+      <div class="pin-screen">
+        <div class="pin-box">
+          <h2>🔒 Admin Access</h2>
+          <p>Enter your PIN to continue</p>
+          <input type="password" id="pin-input" maxlength="10" placeholder="PIN" autofocus>
+          <button id="pin-btn" class="btn-admin">Unlock</button>
+          <p id="pin-error" class="pin-error" style="display:none">Wrong PIN. Try again.</p>
+        </div>
+      </div>`;
+    const input = document.getElementById('pin-input');
+    const btn = document.getElementById('pin-btn');
+    const err = document.getElementById('pin-error');
+    const verify = async () => {
+      const pin = input.value;
+      const encoded = new TextEncoder().encode(pin);
+      const hashBuf = await crypto.subtle.digest('SHA-256', encoded);
+      const hash = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+      if (hash === pinHash) {
+        sessionStorage.setItem('admin-unlocked', 'yes');
+        window.location.reload();
+      } else {
+        err.style.display = '';
+        input.value = '';
+        input.focus();
+      }
+    };
+    btn.addEventListener('click', verify);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') verify(); });
   }
 
   // === Routing ===
