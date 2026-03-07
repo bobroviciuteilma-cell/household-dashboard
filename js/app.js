@@ -9,9 +9,9 @@ import {
   ORG_OVERVIEW,
   DEEP_CLEAN_OVERVIEW,
   WEEK_DAYS
-} from './data.js?v=41';
-import { printPage, printAll } from './print-clean.js?v=41';
-import { AdminPanel } from './admin.js?v=41';
+} from './data.js?v=42';
+import { printPage, printAll } from './print-clean.js?v=42';
+import { AdminPanel } from './admin.js?v=42';
 
 const { S, O, A, L, D, SEC } = TASK_TYPES;
 

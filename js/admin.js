@@ -2,7 +2,7 @@
  * Admin Panel — Personal dashboard (hidden behind ?admin URL param)
  * Tabs: Household | Calendar | Projects | Notes
  */
-import { WEEK_DAYS } from './data.js?v=41';
+import { WEEK_DAYS } from './data.js?v=42';
 
 // ─── Confetti Animation ────────────────────────────────────────
 function fireConfetti(targetEl) {
@@ -240,6 +240,17 @@ export class AdminPanel {
     panel.querySelector('#cal-add-btn').addEventListener('click', () => this.addEvent());
     panel.querySelector('#cal-cancel-btn').addEventListener('click', () => this.cancelEditEvent());
 
+    // Click outside the add-section → dismiss day events panel
+    document.addEventListener('click', (e) => {
+      const addSection = document.querySelector('.cal-add-section');
+      const calBody = document.getElementById('cal-body');
+      const dayEventsPanel = document.getElementById('cal-day-events');
+      if (!dayEventsPanel || !dayEventsPanel.innerHTML) return;
+      // If click is inside the add section or calendar body, don't dismiss
+      if (addSection?.contains(e.target) || calBody?.contains(e.target)) return;
+      this.resetCalendarForm();
+    });
+
     this.refreshCalendar();
   }
 
@@ -355,7 +366,8 @@ export class AdminPanel {
       return;
     }
 
-    const dayLabel = wd ? `${wd.dayName} ${wd.date}` : dayId;
+    const w4Labels = { 'w4-mon': '23 March', 'w4-tue': '24 March', 'w4-wed': '25 March', 'w4-thu': '26 March', 'w4-fri': '27 March', 'w4-sat': '28 March', 'w4-sun': '29 March' };
+    const dayLabel = wd ? `${wd.dayName} ${wd.date || w4Labels[dayId] || ''}` : dayId;
     container.innerHTML = `
       <h5 class="cal-day-events__title">Events on ${dayLabel}:</h5>
       ${items.map(it => {
