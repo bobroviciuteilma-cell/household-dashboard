@@ -2,7 +2,7 @@
  * Admin Panel — Personal dashboard (hidden behind ?admin URL param)
  * Tabs: Household | Calendar | Projects | Notes
  */
-import { WEEK_DAYS } from './data.js?v=35';
+import { WEEK_DAYS } from './data.js?v=36';
 
 // ─── Confetti Animation ────────────────────────────────────────
 function fireConfetti(targetEl) {
@@ -99,6 +99,8 @@ export class AdminPanel {
     this.monthFilter = 'all';
     this.editingEventId = null;
     this.editingTaskId = null;
+    this.editingPaymentId = null;
+    this._convertingBiPayment = null;
     this.hiddenBuiltIns = this.load('admin-hidden-builtins') || [];
   }
 
@@ -396,12 +398,12 @@ export class AdminPanel {
       body.innerHTML = this.renderMonthView();
     }
 
-    // Bind edit buttons — built-in events
-    body.querySelectorAll('.cal-event-edit-bi').forEach(btn => {
+    // Bind edit buttons — built-in events (week + month views)
+    body.querySelectorAll('.cal-event-edit-bi, .cal-mini-edit-bi').forEach(btn => {
       btn.addEventListener('click', () => this.startEditBuiltIn(btn.dataset.bi));
     });
-    // Bind edit & delete buttons — user events
-    body.querySelectorAll('.cal-event-edit').forEach(btn => {
+    // Bind edit & delete buttons — user events (week + month views)
+    body.querySelectorAll('.cal-event-edit, .cal-mini-edit').forEach(btn => {
       btn.addEventListener('click', () => this.startEditEvent(parseInt(btn.dataset.id)));
     });
     body.querySelectorAll('.cal-event-del').forEach(btn => {
@@ -480,9 +482,14 @@ export class AdminPanel {
     const isOff = day.hazelOff || day.nicaOff;
     const offLabel = day.hazelOff ? 'Hazel off' : day.nicaOff ? 'Nica off' : '';
 
+    // Detect if this day is today
+    const today = new Date();
+    const dateNum = parseInt(day.date);
+    const isToday = today.getMonth() === 2 && today.getFullYear() === 2026 && today.getDate() === dateNum;
+
     const shortName = day.dayName.slice(0, 3);
     return `
-      <div class="cal-day${isOff ? ' cal-day--off' : ''}">
+      <div class="cal-day${isOff ? ' cal-day--off' : ''}${isToday ? ' cal-day--today' : ''}">
         <div class="cal-day__header">
           <span class="cal-day__name">${shortName}</span>
           <span class="cal-day__date">${day.date}</span>
@@ -500,6 +507,9 @@ export class AdminPanel {
     const header = dayNames.map(d => `<div class="cal-month-header">${d}</div>`).join('');
     const firstDayOffset = 6; // March 1, 2026 = Sunday → index 6 in Mon-based week
     const daysInMonth = 31;
+    const hidden = this.hiddenBuiltIns;
+    const mEditBi = (ref) => `<button class="cal-mini-edit-bi" data-bi="${ref}">✏️</button>`;
+    const mEditUsr = (id) => `<button class="cal-mini-edit" data-id="${id}">✏️</button>`;
 
     let cells = '';
     for (let i = 0; i < firstDayOffset; i++) cells += '<div class="cal-month-cell cal-month-cell--empty"></div>';
@@ -521,24 +531,38 @@ export class AdminPanel {
 
       // Leon's activities
       if ((filter === 'all' || filter === 'leon') && weekDay?.leonActivity) {
-        items.push(`<div class="cal-mini cal-mini--leon">\u{1F476}\u{1F3FC} ${weekDay.leonActivity}</div>`);
+        const ref = `leon-${weekDay.id}`;
+        if (!hidden.includes(ref)) {
+          items.push(`<div class="cal-mini cal-mini--leon">\u{1F476}\u{1F3FC} ${weekDay.leonActivity} ${mEditBi(ref)}</div>`);
+        }
       }
 
       // Admin / House Errands
       if ((filter === 'all' || filter === 'admin') && weekDay?.adminEvents?.length) {
-        weekDay.adminEvents.forEach(e => items.push(`<div class="cal-mini cal-mini--admin">\u{1F4CC} ${e}</div>`));
+        weekDay.adminEvents.forEach((e, i) => {
+          const ref = `admin-${weekDay.id}-${i}`;
+          if (!hidden.includes(ref)) {
+            items.push(`<div class="cal-mini cal-mini--admin">\u{1F4CC} ${e} ${mEditBi(ref)}</div>`);
+          }
+        });
       }
 
       // Organisation tasks
       if ((filter === 'all' || filter === 'org') && weekDay?.orgTask) {
-        items.push(`<div class="cal-mini cal-mini--org">\u{1F4E6} ${weekDay.orgTask}</div>`);
+        const ref = `org-${weekDay.id}`;
+        if (!hidden.includes(ref)) {
+          items.push(`<div class="cal-mini cal-mini--org">\u{1F4E6} ${weekDay.orgTask} ${mEditBi(ref)}</div>`);
+        }
       }
 
       // Built-in personal events (Gym, Steffi-Leica, Emi's Birthday)
       if (filter === 'all' || filter === 'personal') {
         const biEvents = this.builtInEvents.filter(e => this.dayIdMatchesDate(e.dayId, d));
         biEvents.forEach(e => {
-          items.push(`<div class="cal-mini cal-mini--personal">\u{1F481}\u200D\u2640\uFE0F ${e.time ? e.time + ' ' : ''}${e.title}</div>`);
+          const ref = `bi-${e.id}`;
+          if (!hidden.includes(ref)) {
+            items.push(`<div class="cal-mini cal-mini--personal">\u{1F481}\u200D\u2640\uFE0F ${e.time ? e.time + ' ' : ''}${e.title} ${mEditBi(ref)}</div>`);
+          }
         });
       }
 
@@ -548,7 +572,7 @@ export class AdminPanel {
         const cat = e.category || 'personal';
         if (filter !== 'all' && filter !== cat) return;
         const emoji = catEmojis[cat] || catEmojis.personal;
-        items.push(`<div class="cal-mini cal-mini--${cat}">${emoji} ${e.time ? e.time + ' ' : ''}${e.title}</div>`);
+        items.push(`<div class="cal-mini cal-mini--${cat}">${emoji} ${e.time ? e.time + ' ' : ''}${e.title} ${mEditUsr(e.id)}</div>`);
       });
 
       // Built-in payments (unpaid only)
@@ -608,6 +632,7 @@ export class AdminPanel {
           <input type="number" id="budget-amount" placeholder="Amount (S$)" min="0" step="0.01">
           <select id="budget-day"></select>
           <button id="budget-add-btn" class="btn-admin">Add Payment</button>
+          <button id="budget-cancel-btn" class="btn-cancel" style="display:none">Cancel</button>
         </div>
         <div class="budget-summary" id="budget-summary"></div>
         <div class="budget-list" id="budget-list"></div>
@@ -640,6 +665,7 @@ export class AdminPanel {
     // Budget tracker bindings
     this.populateBudgetDaySelector();
     panel.querySelector('#budget-add-btn').addEventListener('click', () => this.addPayment());
+    panel.querySelector('#budget-cancel-btn').addEventListener('click', () => this.cancelEditPayment());
     panel.querySelector('#budget-payee').addEventListener('keydown', (e) => { if (e.key === 'Enter') this.addPayment(); });
     this.refreshBudget();
 
@@ -667,12 +693,86 @@ export class AdminPanel {
     if (!payee || !amountStr) return;
     const amount = parseFloat(amountStr);
     if (isNaN(amount) || amount <= 0) return;
-    this.payments.push({ id: Date.now(), payee, amount, dayId, paid: false, created: new Date().toISOString() });
+
+    const resetForm = () => {
+      document.getElementById('budget-payee').value = '';
+      document.getElementById('budget-amount').value = '';
+      document.getElementById('budget-add-btn').textContent = 'Add Payment';
+      document.getElementById('budget-cancel-btn').style.display = 'none';
+      document.querySelector('.budget-add')?.classList.remove('is-editing');
+    };
+
+    if (this._convertingBiPayment) {
+      // Convert built-in payment: hide original, create user copy
+      const biId = this._convertingBiPayment;
+      // Remove built-in from display by marking it paid and creating user replacement
+      const paidMap = this.load('admin-builtin-paid') || {};
+      paidMap[biId] = true;
+      this.save('admin-builtin-paid', paidMap);
+      this.payments.push({ id: Date.now(), payee, amount, dayId, paid: false, created: new Date().toISOString() });
+      this._convertingBiPayment = null;
+      resetForm();
+    } else if (this.editingPaymentId !== null) {
+      // Update existing user payment
+      const p = this.payments.find(p => p.id === this.editingPaymentId);
+      if (p) {
+        p.payee = payee;
+        p.amount = amount;
+        p.dayId = dayId;
+      }
+      this.editingPaymentId = null;
+      resetForm();
+    } else {
+      this.payments.push({ id: Date.now(), payee, amount, dayId, paid: false, created: new Date().toISOString() });
+    }
+
     this.save('admin-payments', this.payments);
     document.getElementById('budget-payee').value = '';
     document.getElementById('budget-amount').value = '';
     this.refreshBudget();
     if (document.getElementById('cal-body')) this.refreshCalendar();
+  }
+
+  startEditPayment(id) {
+    const p = this.payments.find(p => p.id === id);
+    if (!p) return;
+    this.editingPaymentId = id;
+    this._convertingBiPayment = null;
+    document.getElementById('budget-payee').value = p.payee;
+    document.getElementById('budget-amount').value = p.amount;
+    document.getElementById('budget-day').value = p.dayId;
+    document.getElementById('budget-add-btn').textContent = 'Save ✓';
+    document.getElementById('budget-cancel-btn').style.display = '';
+    const form = document.querySelector('.budget-add');
+    form?.classList.add('is-editing');
+    form?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    document.getElementById('budget-payee').focus();
+  }
+
+  startEditBuiltInPayment(biId) {
+    const p = this.builtInPayments.find(p => p.id === biId);
+    if (!p) return;
+    this._convertingBiPayment = biId;
+    this.editingPaymentId = null;
+    document.getElementById('budget-payee').value = p.payee;
+    document.getElementById('budget-amount').value = p.amount || '';
+    if (p.dayId) document.getElementById('budget-day').value = p.dayId;
+    document.getElementById('budget-add-btn').textContent = 'Save ✓';
+    document.getElementById('budget-cancel-btn').style.display = '';
+    const form = document.querySelector('.budget-add');
+    form?.classList.add('is-editing');
+    form?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    document.getElementById('budget-payee').focus();
+  }
+
+  cancelEditPayment() {
+    this.editingPaymentId = null;
+    this._convertingBiPayment = null;
+    document.getElementById('budget-payee').value = '';
+    document.getElementById('budget-amount').value = '';
+    document.getElementById('budget-add-btn').textContent = 'Add Payment';
+    document.getElementById('budget-cancel-btn').style.display = 'none';
+    document.querySelector('.budget-add')?.classList.remove('is-editing');
   }
 
   togglePayment(id) {
@@ -754,6 +854,7 @@ export class AdminPanel {
             <div class="budget-card__meta">\u{1F4C5} Due: ${dayLabel}</div>
           </div>
           <span class="budget-card__amount">${amountStr}</span>
+          <button class="budget-card__edit" data-id="${p.id}" data-builtin="${p.isBuiltIn}">✏️</button>
           ${!p.isBuiltIn ? `<button class="budget-card__del" data-id="${p.id}">&times;</button>` : ''}
         </div>
       `;
@@ -767,6 +868,14 @@ export class AdminPanel {
       } else {
         cb.addEventListener('change', () => this.togglePayment(parseInt(id)));
       }
+    });
+    list.querySelectorAll('.budget-card__edit').forEach(btn => {
+      const id = btn.dataset.id;
+      const isBuiltIn = btn.dataset.builtin === 'true';
+      btn.addEventListener('click', () => {
+        if (isBuiltIn) this.startEditBuiltInPayment(id);
+        else this.startEditPayment(parseInt(id));
+      });
     });
     list.querySelectorAll('.budget-card__del').forEach(btn => {
       btn.addEventListener('click', () => this.deletePayment(parseInt(btn.dataset.id)));
