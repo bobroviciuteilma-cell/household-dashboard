@@ -2,7 +2,7 @@
  * Admin Panel — Personal dashboard (hidden behind ?admin URL param)
  * Tabs: Household | Calendar | Projects | Notes
  */
-import { WEEK_DAYS } from './data.js?v=42';
+import { WEEK_DAYS } from './data.js?v=43';
 
 // ─── Confetti Animation ────────────────────────────────────────
 function fireConfetti(targetEl) {
@@ -240,14 +240,15 @@ export class AdminPanel {
     panel.querySelector('#cal-add-btn').addEventListener('click', () => this.addEvent());
     panel.querySelector('#cal-cancel-btn').addEventListener('click', () => this.cancelEditEvent());
 
-    // Click outside the add-section → dismiss day events panel
+    // Click outside → dismiss day events panel
     document.addEventListener('click', (e) => {
       const addSection = document.querySelector('.cal-add-section');
-      const calBody = document.getElementById('cal-body');
       const dayEventsPanel = document.getElementById('cal-day-events');
       if (!dayEventsPanel || !dayEventsPanel.innerHTML) return;
-      // If click is inside the add section or calendar body, don't dismiss
-      if (addSection?.contains(e.target) || calBody?.contains(e.target)) return;
+      // Don't dismiss if clicking inside the form/panel area
+      if (addSection?.contains(e.target)) return;
+      // Don't dismiss if clicking on an actual calendar event (it will repopulate)
+      if (e.target.closest('.cal-event') || e.target.closest('.cal-mini') || e.target.closest('.cal-month-num')) return;
       this.resetCalendarForm();
     });
 
@@ -639,9 +640,11 @@ export class AdminPanel {
     const isOff = day.hazelOff || day.nicaOff;
     const offLabel = day.hazelOff ? 'Hazel off' : day.nicaOff ? 'Nica off' : '';
 
-    // Detect if this day is today
+    // Detect if this day is today — week 4 days don't have .date, use fallback
+    const w4Dates = { 'w4-mon': '23', 'w4-tue': '24', 'w4-wed': '25', 'w4-thu': '26', 'w4-fri': '27', 'w4-sat': '28', 'w4-sun': '29' };
+    const dateDisplay = day.date || w4Dates[day.id] || '';
     const today = new Date();
-    const dateNum = parseInt(day.date);
+    const dateNum = parseInt(dateDisplay);
     const isToday = today.getMonth() === 2 && today.getFullYear() === 2026 && today.getDate() === dateNum;
 
     const shortName = day.dayName.slice(0, 3);
@@ -649,7 +652,7 @@ export class AdminPanel {
       <div class="cal-day${isOff ? ' cal-day--off' : ''}${isToday ? ' cal-day--today' : ''}">
         <div class="cal-day__header">
           <span class="cal-day__name">${shortName}</span>
-          <span class="cal-day__date">${day.date}</span>
+          <span class="cal-day__date">${dateDisplay}</span>
           ${isOff ? `<span class="cal-day__off">${offLabel}</span>` : ''}
         </div>
         <div class="cal-day__events">${events.join('')}</div>
