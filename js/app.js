@@ -57,7 +57,7 @@ class DashboardApp {
 
     // Admin mode: PIN-protected personal panel
     if (this.isAdmin) {
-      const PIN_HASH = '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4'; // SHA-256 of PIN
+      const PIN_HASH = '9113b98df80f877c7a2ee5d865a04c9514b4e9bf25a49d315b0b15f115d2f0d2'; // SHA-256 of PIN
       const unlocked = sessionStorage.getItem('admin-unlocked') === 'yes';
       if (unlocked) {
         this.adminPanel = new AdminPanel(this);
