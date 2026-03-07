@@ -2,7 +2,7 @@
  * Admin Panel — Personal dashboard (hidden behind ?admin URL param)
  * Tabs: Household | Calendar | Projects | Notes
  */
-import { WEEK_DAYS } from './data.js?v=36';
+import { WEEK_DAYS } from './data.js?v=37';
 
 // ─── Confetti Animation ────────────────────────────────────────
 function fireConfetti(targetEl) {
