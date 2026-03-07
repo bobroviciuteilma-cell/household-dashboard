@@ -2260,22 +2260,30 @@ body.admin-mode {
 }
 .admin-mode .admin-tabs {
   display: flex;
+  justify-content: center;
+  align-items: stretch;
   gap: 0;
   background: var(--color-surface);
   border-bottom: 2px solid var(--color-border);
-  padding: 0 var(--sp-4);
+  padding: 0;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 1000;
+  height: 48px;
 }
 /* Push all content below the fixed tab bar */
 .admin-mode .admin-panel-content {
   margin-top: 48px;
 }
 .admin-tab {
-  padding: var(--sp-3) var(--sp-6);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--sp-6);
+  min-width: 110px;
+  height: 100%;
   border: none;
   background: none;
   font-family: var(--font-heading);
@@ -2285,10 +2293,11 @@ body.admin-mode {
   cursor: pointer;
   border-bottom: 3px solid transparent;
   transition: all 0.15s ease;
+  letter-spacing: 0.02em;
 }
 .admin-tab:hover {
   color: var(--color-heading);
-  background: rgba(0,0,0,0.02);
+  background: rgba(0,0,0,0.03);
 }
 .admin-tab.is-active {
   color: var(--color-accent);
@@ -2910,9 +2919,12 @@ body.admin-mode {
   .admin-tabs {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    justify-content: stretch;
   }
   .admin-tab {
-    padding: var(--sp-2) var(--sp-4);
+    flex: 1;
+    padding: 0 var(--sp-3);
+    min-width: 0;
     font-size: var(--fs-sm);
     white-space: nowrap;
   }
