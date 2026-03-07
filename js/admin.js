@@ -2,7 +2,7 @@
  * Admin Panel — Personal dashboard (hidden behind ?admin URL param)
  * Tabs: Household | Calendar | Projects | Notes
  */
-import { WEEK_DAYS } from './data.js?v=43';
+import { WEEK_DAYS } from './data.js?v=44';
 
 // ─── Confetti Animation ────────────────────────────────────────
 function fireConfetti(targetEl) {
@@ -68,6 +68,9 @@ export class AdminPanel {
     this.activeTab = 'calendar';
     this.calendarView = 'week';
     this.currentWeek = this.detectCurrentWeek();
+    this.currentMonth = new Date().getMonth(); // 0-indexed (March=2)
+    this.currentYear = 2026;
+    this.weekFilter = 'all'; // filter for weekly view
     this.builtInEvents = [
       { id: 'bi-gym-w1', dayId: 'w1-mon', title: 'Gym', time: '10:30 AM' },
       { id: 'bi-gym-w2', dayId: 'w2-mon', title: 'Gym', time: '10:30 AM' },
@@ -106,11 +109,90 @@ export class AdminPanel {
 
   detectCurrentWeek() {
     const today = new Date();
-    const day = today.getDate();
-    if (day <= 8) return 1;
-    if (day <= 15) return 2;
-    if (day <= 22) return 3;
-    return 4;
+    const start = new Date(2026, 2, 2); // March 2, 2026
+    if (today < start) return 1;
+    const diff = Math.floor((today - start) / (7 * 86400000));
+    return Math.max(1, Math.min(this.getTotalWeeks(), diff + 1));
+  }
+
+  getWeekStartDate(weekNum) {
+    return new Date(2026, 2, 2 + (weekNum - 1) * 7);
+  }
+
+  getTotalWeeks() {
+    const start = new Date(2026, 2, 2);
+    const end = new Date(2026, 11, 31);
+    return Math.ceil((end - start + 86400000) / (7 * 86400000));
+  }
+
+  getWeekDays(weekNum) {
+    if (weekNum >= 1 && weekNum <= 3) {
+      return WEEK_DAYS.filter(d => d.weekNum === weekNum);
+    }
+    const w4Template = WEEK_DAYS.filter(d => d.weekNum === 4);
+    const weekStart = this.getWeekStartDate(weekNum);
+    const dayNames = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const endOfYear = new Date(2026, 11, 31);
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(weekStart);
+      date.setDate(weekStart.getDate() + i);
+      if (date > endOfYear) break;
+      const template = w4Template[i];
+      const dayId = weekNum === 4
+        ? template.id
+        : `d-${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+      days.push({
+        id: dayId,
+        weekNum,
+        dayName: dayNames[i],
+        date: `${date.getDate()} ${months[date.getMonth()]}`,
+        hazelOff: template.hazelOff,
+        nicaOff: template.nicaOff,
+        adminEvents: [],
+        orgTask: null,
+        orgType: null,
+        orgTime: null,
+        leonActivity: template.leonActivity,
+        deepClean: template.deepClean,
+        specialNote: template.specialNote,
+        reflection: template.reflection,
+      });
+    }
+    return days;
+  }
+
+  getWeekLabel(weekNum) {
+    if (weekNum <= 3) {
+      return { 1: 'Week 1 \u2014 2\u20138 Mar', 2: 'Week 2 \u2014 9\u201315 Mar', 3: 'Week 3 \u2014 16\u201322 Mar' }[weekNum];
+    }
+    const days = this.getWeekDays(weekNum);
+    if (!days.length) return `Week ${weekNum}`;
+    return `${days[0].date} \u2013 ${days[days.length-1].date}`;
+  }
+
+  getDayIdForDate(year, month, day) {
+    if (year === 2026 && month === 2) {
+      if (day >= 2 && day <= 22) {
+        const wd = WEEK_DAYS.find(w => parseInt(w.date) === day && w.weekNum <= 3);
+        if (wd) return wd.id;
+      }
+      if (day >= 23 && day <= 29) {
+        const shortDays = ['sun','mon','tue','wed','thu','fri','sat'];
+        return `w4-${shortDays[new Date(2026, 2, day).getDay()]}`;
+      }
+    }
+    return `d-${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  }
+
+  getTemplateForDate(year, month, day) {
+    if (year === 2026 && month === 2 && day >= 2 && day <= 22) {
+      return WEEK_DAYS.find(wd => parseInt(wd.date) === day && wd.weekNum <= 3);
+    }
+    const shortDays = ['sun','mon','tue','wed','thu','fri','sat'];
+    const dayAbbr = shortDays[new Date(year, month, day).getDay()];
+    return WEEK_DAYS.find(wd => wd.id === `w4-${dayAbbr}`);
   }
 
   load(key) { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } }
@@ -233,7 +315,7 @@ export class AdminPanel {
     panel.querySelector('#cal-week-nav').addEventListener('click', (e) => {
       const btn = e.target.closest('.cal-nav-btn');
       if (!btn) return;
-      this.currentWeek = Math.max(1, Math.min(4, this.currentWeek + parseInt(btn.dataset.dir)));
+      this.currentWeek = Math.max(1, Math.min(this.getTotalWeeks(), this.currentWeek + parseInt(btn.dataset.dir)));
       this.refreshCalendar();
     });
 
@@ -257,11 +339,24 @@ export class AdminPanel {
 
   populateDaySelector() {
     const sel = document.getElementById('cal-add-day');
-    const w4Labels = { 'w4-mon': '23 Mar', 'w4-tue': '24 Mar', 'w4-wed': '25 Mar', 'w4-thu': '26 Mar', 'w4-fri': '27 Mar', 'w4-sat': '28 Mar', 'w4-sun': '29 Mar' };
-    sel.innerHTML = WEEK_DAYS.map(d => {
-      const label = d.weekNum <= 3 ? `${d.dayName} ${d.date}` : `${d.dayName} ${w4Labels[d.id] || ''}`;
-      return `<option value="${d.id}">${label}</option>`;
-    }).join('');
+    if (!sel) return;
+    if (this.calendarView === 'week') {
+      const days = this.getWeekDays(this.currentWeek);
+      sel.innerHTML = days.map(d => `<option value="${d.id}">${d.dayName} ${d.date}</option>`).join('');
+    } else {
+      const year = this.currentYear;
+      const month = this.currentMonth;
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      let options = '';
+      for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(year, month, d);
+        const dayId = this.getDayIdForDate(year, month, d);
+        options += `<option value="${dayId}">${dayNames[date.getDay()]} ${d} ${monthNames[month]}</option>`;
+      }
+      sel.innerHTML = options;
+    }
   }
 
   addEvent() {
@@ -326,8 +421,14 @@ export class AdminPanel {
     const catEmojis = { personal: '\u{1F481}\u200D\u2640\uFE0F', leon: '\u{1F476}\u{1F3FC}', admin: '\u{1F4CC}', org: '\u{1F4E6}', payment: '\u{1F4B8}' };
     const items = [];
 
-    // Built-in data from WEEK_DAYS
-    const wd = WEEK_DAYS.find(w => w.id === dayId);
+    // Built-in data from WEEK_DAYS (or template for generated days)
+    let wd = WEEK_DAYS.find(w => w.id === dayId);
+    if (!wd && dayId.startsWith('d-')) {
+      const parts = dayId.split('-');
+      const date = new Date(parseInt(parts[1]), parseInt(parts[2])-1, parseInt(parts[3]));
+      const shortDays = ['sun','mon','tue','wed','thu','fri','sat'];
+      wd = WEEK_DAYS.find(w => w.id === `w4-${shortDays[date.getDay()]}`);
+    }
     if (wd) {
       if (wd.leonActivity) {
         const ref = `leon-${dayId}`;
@@ -367,8 +468,17 @@ export class AdminPanel {
       return;
     }
 
-    const w4Labels = { 'w4-mon': '23 March', 'w4-tue': '24 March', 'w4-wed': '25 March', 'w4-thu': '26 March', 'w4-fri': '27 March', 'w4-sat': '28 March', 'w4-sun': '29 March' };
-    const dayLabel = wd ? `${wd.dayName} ${wd.date || w4Labels[dayId] || ''}` : dayId;
+    let dayLabel;
+    if (dayId.startsWith('d-')) {
+      const parts = dayId.split('-');
+      const date = new Date(parseInt(parts[1]), parseInt(parts[2])-1, parseInt(parts[3]));
+      const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      dayLabel = `${dayNames[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]}`;
+    } else {
+      const w4Labels = { 'w4-mon': '23 March', 'w4-tue': '24 March', 'w4-wed': '25 March', 'w4-thu': '26 March', 'w4-fri': '27 March', 'w4-sat': '28 March', 'w4-sun': '29 March' };
+      dayLabel = wd ? `${wd.dayName} ${wd.date || w4Labels[dayId] || ''}` : dayId;
+    }
     container.innerHTML = `
       <h5 class="cal-day-events__title">Events on ${dayLabel}:</h5>
       ${items.map(it => {
@@ -416,21 +526,33 @@ export class AdminPanel {
     // Parse the ref to figure out what built-in event it is
     let title = '', time = '', category = 'personal', dayId = '';
 
+    // Helper: look up WEEK_DAYS by dayId, with fallback for generated d-* IDs
+    const lookupWd = (id) => {
+      let wd = WEEK_DAYS.find(w => w.id === id);
+      if (!wd && id.startsWith('d-')) {
+        const parts = id.split('-');
+        const date = new Date(parseInt(parts[1]), parseInt(parts[2])-1, parseInt(parts[3]));
+        const shortDays = ['sun','mon','tue','wed','thu','fri','sat'];
+        wd = WEEK_DAYS.find(w => w.id === `w4-${shortDays[date.getDay()]}`);
+      }
+      return wd;
+    };
+
     if (biRef.startsWith('leon-')) {
       dayId = biRef.replace('leon-', '');
-      const wd = WEEK_DAYS.find(w => w.id === dayId);
+      const wd = lookupWd(dayId);
       title = wd?.leonActivity || '';
       category = 'leon';
     } else if (biRef.startsWith('admin-')) {
-      const parts = biRef.split('-'); // admin-w1-mon-0
+      const parts = biRef.split('-'); // admin-w1-mon-0 or admin-d-2026-04-06-0
       const idx = parseInt(parts.pop());
       dayId = parts.slice(1).join('-');
-      const wd = WEEK_DAYS.find(w => w.id === dayId);
+      const wd = lookupWd(dayId);
       title = wd?.adminEvents?.[idx] || '';
       category = 'admin';
     } else if (biRef.startsWith('org-')) {
       dayId = biRef.replace('org-', '');
-      const wd = WEEK_DAYS.find(w => w.id === dayId);
+      const wd = lookupWd(dayId);
       title = wd?.orgTask || '';
       time = wd?.orgTime || '';
       category = 'org';
@@ -468,15 +590,21 @@ export class AdminPanel {
     this.refreshCalendar();
   }
 
-  /** Resolve whether a dayId matches a specific date number in March 2026 */
-  dayIdMatchesDate(dayId, d) {
+  /** Resolve whether a dayId matches a specific date (year, month 0-indexed, day) */
+  dayIdMatchesDate(dayId, year, month, day) {
     if (!dayId) return false;
+    // Date-based ID: d-YYYY-MM-DD
+    if (dayId.startsWith('d-')) {
+      return dayId === `d-${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    }
+    // Legacy week-based IDs only match March 2026
+    if (year !== 2026 || month !== 2) return false;
     const wd = WEEK_DAYS.find(w => w.id === dayId);
     if (!wd) return false;
-    if (wd.weekNum <= 3) return parseInt(wd.date) === d;
-    // Week 4 template: match by day-of-week for d >= 23
-    if (d < 23) return false;
-    const date = new Date(2026, 2, d);
+    if (wd.weekNum <= 3) return parseInt(wd.date) === day;
+    // Week 4 template: only match March 23-29
+    if (day < 23 || day > 29) return false;
+    const date = new Date(2026, 2, day);
     const dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][date.getDay()];
     return wd.dayName === dayName;
   }
@@ -500,21 +628,38 @@ export class AdminPanel {
     if (timeInput) timeInput.value = '';
   }
 
+  buildFilterButtons(activeFilter) {
+    const filters = [
+      { key: 'all', label: 'All' },
+      { key: 'leon', label: '\u{1F476}\u{1F3FC} Leon' },
+      { key: 'admin', label: '\u{1F4CC} Errands' },
+      { key: 'org', label: '\u{1F4E6} Organisation' },
+      { key: 'personal', label: '\u{1F481}\u200D\u2640\uFE0F Personal' },
+      { key: 'payment', label: '\u{1F4B8} Payment' },
+    ];
+    return `<div class="cal-month-legend">${filters.map(f =>
+      `<button class="cal-legend-btn${activeFilter === f.key ? ' is-active' : ''}" data-filter="${f.key}">${f.label}</button>`
+    ).join('')}</div>`;
+  }
+
   refreshCalendar() {
     const body = document.getElementById('cal-body');
     const label = document.getElementById('cal-week-label');
-    // Reset form + clear day events panel on any calendar refresh
     this.resetCalendarForm();
+
     if (this.calendarView === 'week') {
-      const weekDays = WEEK_DAYS.filter(d => d.weekNum === this.currentWeek);
-      const weekTitles = { 1: 'Week 1 — 2\u20138 Mar', 2: 'Week 2 — 9\u201315 Mar', 3: 'Week 3 — 16\u201322 Mar', 4: 'Week 4+ — 23\u201329 Mar' };
-      label.textContent = weekTitles[this.currentWeek];
-      body.innerHTML = `<div class="cal-week">${weekDays.map(d => this.renderCalDay(d)).join('')}</div>`;
+      const weekDays = this.getWeekDays(this.currentWeek);
+      label.textContent = this.getWeekLabel(this.currentWeek);
+
+      const filter = this.weekFilter || 'all';
+      const filterHtml = this.buildFilterButtons(filter);
+      body.innerHTML = `<div class="cal-week">${weekDays.map(d => this.renderCalDay(d)).join('')}</div>${filterHtml}`;
     } else {
       body.innerHTML = this.renderMonthView();
     }
+    this.populateDaySelector();
 
-    // Click event → show that day's events in the edit panel
+    // Click event \u2192 show that day's events in the edit panel
     const getDayIdFromRef = (ref) => {
       if (ref.startsWith('leon-')) return ref.replace('leon-', '');
       if (ref.startsWith('org-')) return ref.replace('org-', '');
@@ -528,7 +673,24 @@ export class AdminPanel {
     const showDay = (dayId) => {
       if (!dayId) return;
       const sel = document.getElementById('cal-add-day');
-      if (sel) sel.value = dayId;
+      if (sel) {
+        if (![...sel.options].some(o => o.value === dayId)) {
+          const opt = document.createElement('option');
+          opt.value = dayId;
+          if (dayId.startsWith('d-')) {
+            const parts = dayId.split('-');
+            const date = new Date(parseInt(parts[1]), parseInt(parts[2])-1, parseInt(parts[3]));
+            const dn = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+            const mn = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            opt.textContent = `${dn[date.getDay()]} ${date.getDate()} ${mn[date.getMonth()]}`;
+          } else {
+            const wd = WEEK_DAYS.find(w => w.id === dayId);
+            opt.textContent = wd ? `${wd.dayName} ${wd.date || dayId}` : dayId;
+          }
+          sel.appendChild(opt);
+        }
+        sel.value = dayId;
+      }
       this.refreshDayEvents();
       document.getElementById('cal-day-events')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     };
@@ -550,29 +712,42 @@ export class AdminPanel {
       if (!numEl) return;
       const d = parseInt(numEl.textContent);
       if (isNaN(d)) return;
-      // Find the WEEK_DAYS entry for this date
-      const wd = WEEK_DAYS.find(w => {
-        const dateNum = parseInt(w.date);
-        return dateNum === d && w.weekNum <= 3;
-      }) || WEEK_DAYS.find(w => {
-        if (w.weekNum !== 4) return false;
-        const date = new Date(2026, 2, d);
-        const dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][date.getDay()];
-        return w.dayName === dayName && d >= 23;
-      });
-      if (wd) {
+      const dayId = this.getDayIdForDate(this.currentYear, this.currentMonth, d);
+      if (dayId) {
         numEl.style.cursor = 'pointer';
         numEl.addEventListener('click', (e) => {
           e.stopPropagation();
-          showDay(wd.id);
+          showDay(dayId);
         });
       }
     });
 
-    // Bind legend filter buttons (month view)
+    // Bind filter buttons (both week and month view)
     body.querySelectorAll('.cal-legend-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        this.monthFilter = btn.dataset.filter;
+        if (this.calendarView === 'week') {
+          this.weekFilter = btn.dataset.filter;
+        } else {
+          this.monthFilter = btn.dataset.filter;
+        }
+        this.refreshCalendar();
+      });
+    });
+
+    // Month view: month nav buttons
+    body.querySelectorAll('.cal-month-nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const dir = parseInt(btn.dataset.dir);
+        this.currentMonth += dir;
+        if (this.currentMonth > 11) { this.currentMonth = 0; this.currentYear++; }
+        if (this.currentMonth < 0) { this.currentMonth = 11; this.currentYear--; }
+        // Clamp to March-December 2026
+        if (this.currentYear < 2026 || (this.currentYear === 2026 && this.currentMonth < 2)) {
+          this.currentMonth = 2; this.currentYear = 2026;
+        }
+        if (this.currentYear > 2026) {
+          this.currentMonth = 11; this.currentYear = 2026;
+        }
         this.refreshCalendar();
       });
     });
@@ -581,9 +756,10 @@ export class AdminPanel {
   renderCalDay(day) {
     const events = [];
     const hidden = this.hiddenBuiltIns;
+    const filter = this.weekFilter || 'all';
 
     // Leon's activity
-    if (day.leonActivity) {
+    if ((filter === 'all' || filter === 'leon') && day.leonActivity) {
       const ref = `leon-${day.id}`;
       if (!hidden.includes(ref)) {
         events.push(`<div class="cal-event cal-event--leon" data-bi="${ref}">\u{1F476}\u{1F3FC} ${day.leonActivity}</div>`);
@@ -591,7 +767,7 @@ export class AdminPanel {
     }
 
     // Admin events
-    if (day.adminEvents?.length) {
+    if ((filter === 'all' || filter === 'admin') && day.adminEvents?.length) {
       day.adminEvents.forEach((e, i) => {
         const ref = `admin-${day.id}-${i}`;
         if (!hidden.includes(ref)) {
@@ -601,7 +777,7 @@ export class AdminPanel {
     }
 
     // Org task
-    if (day.orgTask) {
+    if ((filter === 'all' || filter === 'org') && day.orgTask) {
       const ref = `org-${day.id}`;
       if (!hidden.includes(ref)) {
         events.push(`<div class="cal-event cal-event--org" data-bi="${ref}">\u{1F4E6} ${day.orgTask}${day.orgTime ? ' \u2014 ' + day.orgTime : ''}</div>`);
@@ -609,43 +785,55 @@ export class AdminPanel {
     }
 
     // Built-in personal events
-    const builtIn = this.builtInEvents.filter(e => e.dayId === day.id);
-    builtIn.forEach(e => {
-      const ref = `bi-${e.id}`;
-      if (!hidden.includes(ref)) {
-        events.push(`<div class="cal-event cal-event--personal" data-bi="${ref}">\u{1F481}\u200D\u2640\uFE0F ${e.time ? e.time + ' ' : ''}${e.title}</div>`);
-      }
-    });
+    if (filter === 'all' || filter === 'personal') {
+      const builtIn = this.builtInEvents.filter(e => e.dayId === day.id);
+      builtIn.forEach(e => {
+        const ref = `bi-${e.id}`;
+        if (!hidden.includes(ref)) {
+          events.push(`<div class="cal-event cal-event--personal" data-bi="${ref}">\u{1F481}\u200D\u2640\uFE0F ${e.time ? e.time + ' ' : ''}${e.title}</div>`);
+        }
+      });
+    }
 
     // User-added events (with category support)
     const catEmojis = { personal: '\u{1F481}\u200D\u2640\uFE0F', leon: '\u{1F476}\u{1F3FC}', admin: '\u{1F4CC}', org: '\u{1F4E6}', payment: '\u{1F4B8}' };
     const myEvents = this.events.filter(e => e.dayId === day.id);
     myEvents.forEach(e => {
       const cat = e.category || 'personal';
+      if (filter !== 'all' && filter !== cat) return;
       const emoji = catEmojis[cat] || catEmojis.personal;
       events.push(`<div class="cal-event cal-event--${cat}" data-user-id="${e.id}">${emoji} ${e.time ? e.time + ' ' : ''}${e.title}</div>`);
     });
 
-    // Payment events — built-in + user (unpaid only)
-    const paidMap = this.load('admin-builtin-paid') || {};
-    const biPayments = this.builtInPayments.filter(p => p.dayId === day.id && !paidMap[p.id]);
-    biPayments.forEach(p => {
-      events.push(`<div class="cal-event cal-event--payment">\u{1F4B8} ${p.payee}${p.amount ? ' \u2014 S$' + p.amount.toFixed(0) : ''}</div>`);
-    });
-    const userPayments = this.payments.filter(p => p.dayId === day.id && !p.paid);
-    userPayments.forEach(p => {
-      events.push(`<div class="cal-event cal-event--payment">\u{1F4B8} ${p.payee} \u2014 S$${p.amount.toFixed(2)}</div>`);
-    });
+    // Payment events -- built-in + user (unpaid only)
+    if (filter === 'all' || filter === 'payment') {
+      const paidMap = this.load('admin-builtin-paid') || {};
+      const biPayments = this.builtInPayments.filter(p => p.dayId === day.id && !paidMap[p.id]);
+      biPayments.forEach(p => {
+        events.push(`<div class="cal-event cal-event--payment">\u{1F4B8} ${p.payee}${p.amount ? ' \u2014 S$' + p.amount.toFixed(0) : ''}</div>`);
+      });
+      const userPayments = this.payments.filter(p => p.dayId === day.id && !p.paid);
+      userPayments.forEach(p => {
+        events.push(`<div class="cal-event cal-event--payment">\u{1F4B8} ${p.payee} \u2014 S$${p.amount.toFixed(2)}</div>`);
+      });
+    }
 
     const isOff = day.hazelOff || day.nicaOff;
     const offLabel = day.hazelOff ? 'Hazel off' : day.nicaOff ? 'Nica off' : '';
 
-    // Detect if this day is today — week 4 days don't have .date, use fallback
-    const w4Dates = { 'w4-mon': '23', 'w4-tue': '24', 'w4-wed': '25', 'w4-thu': '26', 'w4-fri': '27', 'w4-sat': '28', 'w4-sun': '29' };
-    const dateDisplay = day.date || w4Dates[day.id] || '';
+    // Detect if this day is today
+    const dateDisplay = day.date || '';
     const today = new Date();
-    const dateNum = parseInt(dateDisplay);
-    const isToday = today.getMonth() === 2 && today.getFullYear() === 2026 && today.getDate() === dateNum;
+    // Parse date display for today detection
+    let isToday = false;
+    if (day.id.startsWith('d-')) {
+      const parts = day.id.split('-');
+      isToday = today.getFullYear() === parseInt(parts[1]) && today.getMonth() === parseInt(parts[2])-1 && today.getDate() === parseInt(parts[3]);
+    } else {
+      const w4Dates = { 'w4-mon': 23, 'w4-tue': 24, 'w4-wed': 25, 'w4-thu': 26, 'w4-fri': 27, 'w4-sat': 28, 'w4-sun': 29 };
+      const dateNum = day.date ? parseInt(day.date) : w4Dates[day.id];
+      isToday = today.getMonth() === 2 && today.getFullYear() === 2026 && today.getDate() === dateNum;
+    }
 
     const shortName = day.dayName.slice(0, 3);
     return `
@@ -662,11 +850,17 @@ export class AdminPanel {
 
   renderMonthView() {
     const filter = this.monthFilter || 'all';
+    const year = this.currentYear;
+    const month = this.currentMonth;
     const catEmojis = { personal: '\u{1F481}\u200D\u2640\uFE0F', leon: '\u{1F476}\u{1F3FC}', admin: '\u{1F4CC}', org: '\u{1F4E6}', payment: '\u{1F4B8}' };
     const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
     const header = dayNames.map(d => `<div class="cal-month-header">${d}</div>`).join('');
-    const firstDayOffset = 6; // March 1, 2026 = Sunday → index 6 in Mon-based week
-    const daysInMonth = 31;
+
+    // Compute first day offset (Mon-based: Mon=0, Tue=1, ..., Sun=6)
+    const firstDay = new Date(year, month, 1).getDay(); // 0=Sun
+    const firstDayOffset = firstDay === 0 ? 6 : firstDay - 1;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
     const hidden = this.hiddenBuiltIns;
 
     let cells = '';
@@ -675,21 +869,13 @@ export class AdminPanel {
     const paidMap = this.load('admin-builtin-paid') || {};
 
     for (let d = 1; d <= daysInMonth; d++) {
-      const weekDay = WEEK_DAYS.find(wd => {
-        const dateNum = parseInt(wd.date);
-        return dateNum === d && wd.weekNum <= 3;
-      }) || WEEK_DAYS.find(wd => {
-        if (wd.weekNum !== 4) return false;
-        const date = new Date(2026, 2, d);
-        const dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][date.getDay()];
-        return wd.dayName === dayName && d >= 23;
-      });
-
+      const weekDay = this.getTemplateForDate(year, month, d);
+      const dayId = this.getDayIdForDate(year, month, d);
       const items = [];
 
       // Leon's activities
       if ((filter === 'all' || filter === 'leon') && weekDay?.leonActivity) {
-        const ref = `leon-${weekDay.id}`;
+        const ref = `leon-${dayId}`;
         if (!hidden.includes(ref)) {
           items.push(`<div class="cal-mini cal-mini--leon" data-bi="${ref}">\u{1F476}\u{1F3FC} ${weekDay.leonActivity}</div>`);
         }
@@ -698,7 +884,7 @@ export class AdminPanel {
       // Admin / House Errands
       if ((filter === 'all' || filter === 'admin') && weekDay?.adminEvents?.length) {
         weekDay.adminEvents.forEach((e, i) => {
-          const ref = `admin-${weekDay.id}-${i}`;
+          const ref = `admin-${dayId}-${i}`;
           if (!hidden.includes(ref)) {
             items.push(`<div class="cal-mini cal-mini--admin" data-bi="${ref}">\u{1F4CC} ${e}</div>`);
           }
@@ -707,15 +893,15 @@ export class AdminPanel {
 
       // Organisation tasks
       if ((filter === 'all' || filter === 'org') && weekDay?.orgTask) {
-        const ref = `org-${weekDay.id}`;
+        const ref = `org-${dayId}`;
         if (!hidden.includes(ref)) {
           items.push(`<div class="cal-mini cal-mini--org" data-bi="${ref}">\u{1F4E6} ${weekDay.orgTask}</div>`);
         }
       }
 
-      // Built-in personal events (Gym, Steffi-Leica, Emi's Birthday)
+      // Built-in personal events (only for their specific dayIds)
       if (filter === 'all' || filter === 'personal') {
-        const biEvents = this.builtInEvents.filter(e => this.dayIdMatchesDate(e.dayId, d));
+        const biEvents = this.builtInEvents.filter(e => this.dayIdMatchesDate(e.dayId, year, month, d));
         biEvents.forEach(e => {
           const ref = `bi-${e.id}`;
           if (!hidden.includes(ref)) {
@@ -724,8 +910,8 @@ export class AdminPanel {
         });
       }
 
-      // User-added events (category-aware)
-      const userEvents = this.events.filter(e => this.dayIdMatchesDate(e.dayId, d));
+      // User-added events
+      const userEvents = this.events.filter(e => this.dayIdMatchesDate(e.dayId, year, month, d));
       userEvents.forEach(e => {
         const cat = e.category || 'personal';
         if (filter !== 'all' && filter !== cat) return;
@@ -733,19 +919,20 @@ export class AdminPanel {
         items.push(`<div class="cal-mini cal-mini--${cat}" data-user-id="${e.id}">${emoji} ${e.time ? e.time + ' ' : ''}${e.title}</div>`);
       });
 
-      // Built-in payments (unpaid only)
+      // Built-in payments
       if (filter === 'all' || filter === 'payment') {
-        const biPayments = this.builtInPayments.filter(p => !paidMap[p.id] && this.dayIdMatchesDate(p.dayId, d));
+        const biPayments = this.builtInPayments.filter(p => !paidMap[p.id] && this.dayIdMatchesDate(p.dayId, year, month, d));
         biPayments.forEach(p => {
           items.push(`<div class="cal-mini cal-mini--payment">\u{1F4B8} ${p.payee}${p.amount ? ' S$' + p.amount.toFixed(0) : ''}</div>`);
         });
-        const userPayments = this.payments.filter(p => !p.paid && this.dayIdMatchesDate(p.dayId, d));
+        const userPayments = this.payments.filter(p => !p.paid && this.dayIdMatchesDate(p.dayId, year, month, d));
         userPayments.forEach(p => {
           items.push(`<div class="cal-mini cal-mini--payment">\u{1F4B8} ${p.payee} S$${p.amount.toFixed(0)}</div>`);
         });
       }
 
-      const isToday = d === new Date().getDate() && new Date().getMonth() === 2;
+      const today = new Date();
+      const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
       cells += `
         <div class="cal-month-cell${isToday ? ' cal-month-cell--today' : ''}">
           <span class="cal-month-num">${d}</span>
@@ -753,23 +940,17 @@ export class AdminPanel {
         </div>`;
     }
 
-    const filters = [
-      { key: 'all', label: 'All' },
-      { key: 'leon', label: '\u{1F476}\u{1F3FC} Leon' },
-      { key: 'admin', label: '\u{1F4CC} Errands' },
-      { key: 'org', label: '\u{1F4E6} Organisation' },
-      { key: 'personal', label: '\u{1F481}\u200D\u2640\uFE0F Personal' },
-      { key: 'payment', label: '\u{1F4B8} Payment' },
-    ];
-    const legend = filters.map(f =>
-      `<button class="cal-legend-btn${filter === f.key ? ' is-active' : ''}" data-filter="${f.key}">${f.label}</button>`
-    ).join('');
+    const filterHtml = this.buildFilterButtons(filter);
 
     return `
       <div class="cal-month">
-        <h3 class="cal-month-title">March 2026</h3>
+        <div class="cal-month-nav">
+          <button class="cal-month-nav-btn" data-dir="-1">&larr;</button>
+          <h3 class="cal-month-title">${monthNames[month]} ${year}</h3>
+          <button class="cal-month-nav-btn" data-dir="1">&rarr;</button>
+        </div>
         <div class="cal-month-grid">${header}${cells}</div>
-        <div class="cal-month-legend">${legend}</div>
+        ${filterHtml}
       </div>
     `;
   }
