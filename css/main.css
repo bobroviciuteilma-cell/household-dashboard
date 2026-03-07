@@ -2354,6 +2354,26 @@ body.admin-mode {
   cursor: pointer;
 }
 .btn-admin:hover { opacity: 0.85; }
+.btn-cancel {
+  padding: var(--sp-2) var(--sp-4);
+  background: none;
+  color: var(--color-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+.btn-cancel:hover { color: var(--color-heading); border-color: var(--color-heading); }
+
+/* Editing highlight on add forms */
+.cal-add-form.is-editing,
+.kanban-add.is-editing {
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  padding: var(--sp-3);
+  background: rgba(67, 97, 238, 0.04);
+  transition: all 0.2s ease;
+}
 
 
 /* ═══════════════════════════════════════════════════════════════
@@ -2424,6 +2444,9 @@ body.admin-mode {
   padding: var(--sp-2) var(--sp-3);
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .cal-day__name {
   font-weight: var(--fw-bold);
@@ -2458,19 +2481,27 @@ body.admin-mode {
 .cal-event--org { background: var(--color-org-bg); color: var(--color-org); }
 .cal-event--personal { background: #ede9fe; color: #6d28d9; }
 .cal-event--payment { background: var(--color-payment-bg); color: var(--color-payment); }
-.cal-event-del {
+.cal-event-actions {
   position: absolute;
   right: 2px;
   top: 1px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 0.85rem;
-  color: inherit;
+  display: flex;
+  gap: 2px;
   opacity: 0;
   transition: opacity 0.15s;
 }
-.cal-event:hover .cal-event-del { opacity: 1; }
+.cal-event:hover .cal-event-actions { opacity: 1; }
+.cal-event-edit,
+.cal-event-del {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: inherit;
+  padding: 0 1px;
+  line-height: 1;
+}
+.cal-event-del:hover { color: #ef4444; }
 
 /* --- Month View --- */
 .cal-month { margin-top: var(--sp-4); }
@@ -2687,6 +2718,21 @@ body.admin-mode {
   font-size: var(--fs-sm);
 }
 .kanban-card--done .kanban-card__title { text-decoration: line-through; }
+.kanban-card__btns {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+.kanban-card__edit {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0 2px;
+  opacity: 0.4;
+  transition: opacity 0.15s;
+}
+.kanban-card:hover .kanban-card__edit { opacity: 1; }
 .kanban-card__del {
   background: none;
   border: none;

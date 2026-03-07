@@ -2,7 +2,7 @@
  * Admin Panel — Personal dashboard (hidden behind ?admin URL param)
  * Tabs: Household | Calendar | Projects | Notes
  */
-import { WEEK_DAYS } from './data.js?v=31';
+import { WEEK_DAYS } from './data.js?v=33';
 
 // ─── Confetti Animation ────────────────────────────────────────
 function fireConfetti(targetEl) {
@@ -97,6 +97,8 @@ export class AdminPanel {
     this.notes = this.load('admin-notes') || [];
     this.payments = this.load('admin-payments') || [];
     this.monthFilter = 'all';
+    this.editingEventId = null;
+    this.editingTaskId = null;
   }
 
   detectCurrentWeek() {
@@ -205,6 +207,7 @@ export class AdminPanel {
             <input type="text" id="cal-add-title" placeholder="Event title">
             <input type="text" id="cal-add-time" placeholder="Time (optional)">
             <button id="cal-add-btn" class="btn-admin">Add</button>
+            <button id="cal-cancel-btn" class="btn-cancel" style="display:none">Cancel</button>
           </div>
         </div>
       </div>
@@ -231,6 +234,7 @@ export class AdminPanel {
     });
 
     panel.querySelector('#cal-add-btn').addEventListener('click', () => this.addEvent());
+    panel.querySelector('#cal-cancel-btn').addEventListener('click', () => this.cancelEditEvent());
 
     this.refreshCalendar();
   }
@@ -250,11 +254,54 @@ export class AdminPanel {
     const time = document.getElementById('cal-add-time').value.trim();
     const category = document.getElementById('cal-add-cat').value;
     if (!title) return;
-    this.events.push({ id: Date.now(), dayId, title, time, category: category || 'personal' });
+
+    if (this.editingEventId !== null) {
+      // Update existing event
+      const ev = this.events.find(e => e.id === this.editingEventId);
+      if (ev) {
+        ev.dayId = dayId;
+        ev.title = title;
+        ev.time = time;
+        ev.category = category || 'personal';
+      }
+      this.editingEventId = null;
+      document.getElementById('cal-add-btn').textContent = 'Add';
+      document.getElementById('cal-cancel-btn').style.display = 'none';
+      document.querySelector('.cal-add-form')?.classList.remove('is-editing');
+    } else {
+      this.events.push({ id: Date.now(), dayId, title, time, category: category || 'personal' });
+    }
+
     this.save('admin-events', this.events);
     document.getElementById('cal-add-title').value = '';
     document.getElementById('cal-add-time').value = '';
     this.refreshCalendar();
+  }
+
+  startEditEvent(id) {
+    const ev = this.events.find(e => e.id === id);
+    if (!ev) return;
+    this.editingEventId = id;
+    document.getElementById('cal-add-cat').value = ev.category || 'personal';
+    document.getElementById('cal-add-day').value = ev.dayId;
+    document.getElementById('cal-add-title').value = ev.title;
+    document.getElementById('cal-add-time').value = ev.time || '';
+    document.getElementById('cal-add-btn').textContent = 'Save ✓';
+    document.getElementById('cal-cancel-btn').style.display = '';
+    const form = document.querySelector('.cal-add-form');
+    form?.classList.add('is-editing');
+    form?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    document.getElementById('cal-add-title').focus();
+  }
+
+  cancelEditEvent() {
+    this.editingEventId = null;
+    document.getElementById('cal-add-cat').value = 'personal';
+    document.getElementById('cal-add-title').value = '';
+    document.getElementById('cal-add-time').value = '';
+    document.getElementById('cal-add-btn').textContent = 'Add';
+    document.getElementById('cal-cancel-btn').style.display = 'none';
+    document.querySelector('.cal-add-form')?.classList.remove('is-editing');
   }
 
   deleteEvent(id) {
@@ -288,7 +335,10 @@ export class AdminPanel {
       body.innerHTML = this.renderMonthView();
     }
 
-    // Bind delete buttons
+    // Bind edit & delete buttons
+    body.querySelectorAll('.cal-event-edit').forEach(btn => {
+      btn.addEventListener('click', () => this.startEditEvent(parseInt(btn.dataset.id)));
+    });
     body.querySelectorAll('.cal-event-del').forEach(btn => {
       btn.addEventListener('click', () => this.deleteEvent(parseInt(btn.dataset.id)));
     });
@@ -334,7 +384,7 @@ export class AdminPanel {
     myEvents.forEach(e => {
       const cat = e.category || 'personal';
       const emoji = catEmojis[cat] || catEmojis.personal;
-      events.push(`<div class="cal-event cal-event--${cat}">${emoji} ${e.time ? e.time + ' ' : ''}${e.title} <button class="cal-event-del" data-id="${e.id}">&times;</button></div>`);
+      events.push(`<div class="cal-event cal-event--${cat}">${emoji} ${e.time ? e.time + ' ' : ''}${e.title} <span class="cal-event-actions"><button class="cal-event-edit" data-id="${e.id}">✏️</button><button class="cal-event-del" data-id="${e.id}">&times;</button></span></div>`);
     });
 
     // Payment events — built-in + user (unpaid only)
@@ -351,11 +401,12 @@ export class AdminPanel {
     const isOff = day.hazelOff || day.nicaOff;
     const offLabel = day.hazelOff ? 'Hazel off' : day.nicaOff ? 'Nica off' : '';
 
+    const shortName = day.dayName.slice(0, 3);
     return `
       <div class="cal-day${isOff ? ' cal-day--off' : ''}">
         <div class="cal-day__header">
-          <span class="cal-day__name">${day.dayName}</span>
-          <span class="cal-day__date">${day.date}</span>
+          <span class="cal-day__name">${shortName}</span>
+          <span class="cal-day__date">${day.date} Mar</span>
           ${isOff ? `<span class="cal-day__off">${offLabel}</span>` : ''}
         </div>
         <div class="cal-day__events">${events.join('')}</div>
@@ -488,6 +539,7 @@ export class AdminPanel {
           <input type="text" id="kanban-title" placeholder="New task title">
           <input type="text" id="kanban-desc" placeholder="Description (optional)">
           <button id="kanban-add-btn" class="btn-admin">Add Task</button>
+          <button id="kanban-cancel-btn" class="btn-cancel" style="display:none">Cancel</button>
         </div>
         <div class="kanban" id="kanban-board">
           <div class="kanban-col" data-status="todo">
@@ -514,6 +566,7 @@ export class AdminPanel {
 
     // Kanban bindings
     panel.querySelector('#kanban-add-btn').addEventListener('click', () => this.addTask());
+    panel.querySelector('#kanban-cancel-btn').addEventListener('click', () => this.cancelEditTask());
     panel.querySelector('#kanban-title').addEventListener('keydown', (e) => { if (e.key === 'Enter') this.addTask(); });
     this.refreshProjects();
   }
@@ -645,11 +698,49 @@ export class AdminPanel {
     const title = document.getElementById('kanban-title').value.trim();
     const desc = document.getElementById('kanban-desc').value.trim();
     if (!title) return;
-    this.tasks.push({ id: Date.now(), title, desc, status: 'todo', created: new Date().toISOString() });
+
+    if (this.editingTaskId !== null) {
+      // Update existing task
+      const task = this.tasks.find(t => t.id === this.editingTaskId);
+      if (task) {
+        task.title = title;
+        task.desc = desc;
+      }
+      this.editingTaskId = null;
+      document.getElementById('kanban-add-btn').textContent = 'Add Task';
+      document.getElementById('kanban-cancel-btn').style.display = 'none';
+      document.querySelector('.kanban-add')?.classList.remove('is-editing');
+    } else {
+      this.tasks.push({ id: Date.now(), title, desc, status: 'todo', created: new Date().toISOString() });
+    }
+
     this.save('admin-tasks', this.tasks);
     document.getElementById('kanban-title').value = '';
     document.getElementById('kanban-desc').value = '';
     this.refreshProjects();
+  }
+
+  startEditTask(id) {
+    const task = this.tasks.find(t => t.id === id);
+    if (!task) return;
+    this.editingTaskId = id;
+    document.getElementById('kanban-title').value = task.title;
+    document.getElementById('kanban-desc').value = task.desc || '';
+    document.getElementById('kanban-add-btn').textContent = 'Save ✓';
+    document.getElementById('kanban-cancel-btn').style.display = '';
+    const form = document.querySelector('.kanban-add');
+    form?.classList.add('is-editing');
+    form?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    document.getElementById('kanban-title').focus();
+  }
+
+  cancelEditTask() {
+    this.editingTaskId = null;
+    document.getElementById('kanban-title').value = '';
+    document.getElementById('kanban-desc').value = '';
+    document.getElementById('kanban-add-btn').textContent = 'Add Task';
+    document.getElementById('kanban-cancel-btn').style.display = 'none';
+    document.querySelector('.kanban-add')?.classList.remove('is-editing');
   }
 
   moveTask(id, newStatus) {
@@ -684,7 +775,7 @@ export class AdminPanel {
           <div class="kanban-card${status === 'done' ? ' kanban-card--done' : ''}" data-id="${t.id}">
             <div class="kanban-card__header">
               <span class="kanban-card__title">${t.title}</span>
-              <button class="kanban-card__del" data-id="${t.id}">&times;</button>
+              <span class="kanban-card__btns"><button class="kanban-card__edit" data-id="${t.id}">✏️</button><button class="kanban-card__del" data-id="${t.id}">&times;</button></span>
             </div>
             ${t.desc ? `<p class="kanban-card__desc">${t.desc}</p>` : ''}
             <div class="kanban-card__actions">${moveButtons}</div>
@@ -693,9 +784,12 @@ export class AdminPanel {
       }).join('') || '<p class="kanban-empty">No tasks</p>';
     });
 
-    // Bind move buttons
+    // Bind move, edit & delete buttons
     document.querySelectorAll('.kanban-move').forEach(btn => {
       btn.addEventListener('click', () => this.moveTask(parseInt(btn.dataset.id), btn.dataset.to));
+    });
+    document.querySelectorAll('.kanban-card__edit').forEach(btn => {
+      btn.addEventListener('click', () => this.startEditTask(parseInt(btn.dataset.id)));
     });
     document.querySelectorAll('.kanban-card__del').forEach(btn => {
       btn.addEventListener('click', () => this.deleteTask(parseInt(btn.dataset.id)));
