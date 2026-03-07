@@ -2,7 +2,7 @@
  * Admin Panel — Personal dashboard (hidden behind ?admin URL param)
  * Tabs: Household | Calendar | Projects | Notes
  */
-import { WEEK_DAYS } from './data.js?v=40';
+import { WEEK_DAYS } from './data.js?v=41';
 
 // ─── Confetti Animation ────────────────────────────────────────
 function fireConfetti(targetEl) {
@@ -264,11 +264,6 @@ export class AdminPanel {
       this.hiddenBuiltIns.push(this._convertingBiRef);
       this.save('admin-hidden-builtins', this.hiddenBuiltIns);
       this.events.push({ id: Date.now(), dayId, title, time, category: category || 'personal' });
-      this._convertingBiRef = null;
-      document.getElementById('cal-form-title').textContent = 'Add Event';
-      document.getElementById('cal-add-btn').textContent = 'Add';
-      document.getElementById('cal-cancel-btn').style.display = 'none';
-      document.querySelector('.cal-add-form')?.classList.remove('is-editing');
     } else if (this.editingEventId !== null) {
       // Update existing user event
       const ev = this.events.find(e => e.id === this.editingEventId);
@@ -278,19 +273,12 @@ export class AdminPanel {
         ev.time = time;
         ev.category = category || 'personal';
       }
-      this.editingEventId = null;
-      document.getElementById('cal-form-title').textContent = 'Add Event';
-      document.getElementById('cal-add-btn').textContent = 'Add';
-      document.getElementById('cal-cancel-btn').style.display = 'none';
-      document.querySelector('.cal-add-form')?.classList.remove('is-editing');
     } else {
       this.events.push({ id: Date.now(), dayId, title, time, category: category || 'personal' });
     }
 
     this.save('admin-events', this.events);
-    document.getElementById('cal-add-title').value = '';
-    document.getElementById('cal-add-time').value = '';
-    this.refreshCalendar();
+    this.refreshCalendar(); // resetCalendarForm() is called inside
   }
 
   startEditEvent(id) {
@@ -311,17 +299,8 @@ export class AdminPanel {
   }
 
   cancelEditEvent() {
-    this.editingEventId = null;
-    this._convertingBiRef = null;
     document.getElementById('cal-add-cat').value = 'personal';
-    document.getElementById('cal-add-title').value = '';
-    document.getElementById('cal-add-time').value = '';
-    document.getElementById('cal-form-title').textContent = 'Add Event';
-    document.getElementById('cal-add-btn').textContent = 'Add';
-    document.getElementById('cal-cancel-btn').style.display = 'none';
-    document.querySelector('.cal-add-form')?.classList.remove('is-editing');
-    const dayEventsPanel = document.getElementById('cal-day-events');
-    if (dayEventsPanel) dayEventsPanel.innerHTML = '';
+    this.resetCalendarForm();
   }
 
   /** Show all events for the currently selected day below the add form */
@@ -489,12 +468,30 @@ export class AdminPanel {
     return wd.dayName === dayName;
   }
 
+  resetCalendarForm() {
+    this.editingEventId = null;
+    this._convertingBiRef = null;
+    const title = document.getElementById('cal-form-title');
+    const btn = document.getElementById('cal-add-btn');
+    const cancel = document.getElementById('cal-cancel-btn');
+    const form = document.querySelector('.cal-add-form');
+    const panel = document.getElementById('cal-day-events');
+    if (title) title.textContent = 'Add Event';
+    if (btn) btn.textContent = 'Add';
+    if (cancel) cancel.style.display = 'none';
+    if (form) form.classList.remove('is-editing');
+    if (panel) panel.innerHTML = '';
+    const titleInput = document.getElementById('cal-add-title');
+    const timeInput = document.getElementById('cal-add-time');
+    if (titleInput) titleInput.value = '';
+    if (timeInput) timeInput.value = '';
+  }
+
   refreshCalendar() {
     const body = document.getElementById('cal-body');
     const label = document.getElementById('cal-week-label');
-    // Clear day events panel on any calendar refresh (week nav, view switch, etc.)
-    const dayEventsPanel = document.getElementById('cal-day-events');
-    if (dayEventsPanel) dayEventsPanel.innerHTML = '';
+    // Reset form + clear day events panel on any calendar refresh
+    this.resetCalendarForm();
     if (this.calendarView === 'week') {
       const weekDays = WEEK_DAYS.filter(d => d.weekNum === this.currentWeek);
       const weekTitles = { 1: 'Week 1 — 2\u20138 Mar', 2: 'Week 2 — 9\u201315 Mar', 3: 'Week 3 — 16\u201322 Mar', 4: 'Week 4+ — 23\u201329 Mar' };
