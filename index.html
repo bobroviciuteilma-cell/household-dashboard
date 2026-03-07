@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Household Dashboard — Nica & Hazel</title>
+  <link rel="stylesheet" href="css/variables.css?v=31">
+  <link rel="stylesheet" href="css/main.css?v=31">
+  <link rel="stylesheet" href="css/print.css?v=31" media="print">
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header no-print">
+    <button class="menu-toggle no-print" id="btn-menu" aria-label="Toggle menu">☰</button>
+    <div class="header-left">
+      <h1>Household Dashboard</h1>
+      <p class="subtitle">Nica &amp; Hazel &mdash; Sentosa, March 2026</p>
+    </div>
+    <div class="header-actions">
+      <button id="btn-print-page" class="btn btn--print" title="Print current page">Print This Page</button>
+      <button id="btn-print-all" class="btn btn--print" title="Print complete booklet">Print All</button>
+    </div>
+  </header>
+
+  <!-- Sidebar Navigation -->
+  <nav class="sidebar no-print" id="sidebar">
+    <div class="nav-section">
+      <h3 class="nav-group-label">Legend</h3>
+      <div class="legend" id="nav-legend"></div>
+    </div>
+    <div class="nav-section">
+      <h3 class="nav-group-label">Reference</h3>
+      <div class="nav-pages" id="nav-reference"></div>
+    </div>
+    <div class="nav-section">
+      <h3 class="nav-group-label">Checklists</h3>
+      <div class="nav-pages" id="nav-checklists"></div>
+    </div>
+    <div class="nav-section">
+      <h3 class="nav-group-label">Template</h3>
+      <div class="nav-pages" id="nav-template"></div>
+    </div>
+  </nav>
+  <div class="sidebar-overlay no-print" id="sidebar-overlay"></div>
+
+  <!-- Main Content Area -->
+  <main class="content" id="content">
+    <!-- 7 dashboard pages rendered by JS -->
+  </main>
+
+  <script type="module" src="js/app.js?v=31"></script>
+</body>
+</html>

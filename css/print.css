@@ -1,0 +1,878 @@
+/* ===================================================
+   PRINT STYLES — A4 Optimized
+   Household Management Dashboard
+   All text in dark brown (#3E2723) — NEVER black
+   =================================================== */
+
+@page {
+  size: A4 portrait;
+  margin: 14mm 12mm;
+}
+
+/* ===================================================
+   GLOBAL RESETS
+   =================================================== */
+* {
+  box-shadow: none !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+/* ===================================================
+   HIDE NON-CONTENT ELEMENTS
+   =================================================== */
+.no-print,
+.site-header,
+.sidebar,
+.sidebar-overlay {
+  display: none !important;
+}
+
+/* ===================================================
+   BODY
+   =================================================== */
+body {
+  display: block !important;
+  background: white !important;
+  color: #3E2723 !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  font-size: 10pt !important;
+  line-height: 1.5 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* ===================================================
+   CONTENT AREA
+   =================================================== */
+.content {
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: visible !important;
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+/* ===================================================
+   DASHBOARD PAGES — All Visible in Print
+   =================================================== */
+.dashboard-page {
+  display: block !important;
+  page-break-before: always;
+}
+
+.dashboard-page:first-child {
+  page-break-before: auto;
+}
+
+/* ===================================================
+   TYPOGRAPHY
+   =================================================== */
+
+/* Page titles */
+h2, .page-title {
+  font-size: 18pt !important;
+  font-weight: 700 !important;
+  color: #3E2723 !important;
+  margin-bottom: 5mm !important;
+}
+
+.page-subtitle {
+  font-size: 10pt !important;
+  color: #5D4037 !important;
+  margin-bottom: 3mm !important;
+}
+
+.section-title {
+  font-size: 12pt !important;
+  font-weight: 700 !important;
+  color: #3E2723 !important;
+  margin-bottom: 2mm !important;
+}
+
+/* Subsection titles */
+h4, .subsection-title {
+  font-size: 9pt !important;
+  font-weight: 700 !important;
+  color: #8D6E63 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+}
+
+/* Body text */
+p, td, li, span,
+.routine-item__title,
+.routine-timed-item,
+.routine-duration-item,
+.routine-sequence-item,
+.org-zone,
+.org-principles li {
+  font-size: 10pt !important;
+  color: #3E2723 !important;
+  line-height: 1.5 !important;
+}
+
+.routine-item__desc {
+  font-size: 9pt !important;
+  color: #5D4037 !important;
+}
+
+.team-card__note {
+  font-size: 8.5pt !important;
+  color: #8D6E63 !important;
+}
+
+/* Links */
+a, a:visited {
+  color: #3E2723;
+  text-decoration: none;
+}
+
+/* ===================================================
+   CREAM BAR HEADERS — Unified style for all card/section headers
+   =================================================== */
+.routine-helper__name,
+.standards-card__title,
+.overview-section__title,
+.admin-dates-card__title,
+.leon-section h3,
+.leon-schedule caption,
+.leon-standards h3,
+.comparison-section h3 {
+  background: #FAF6F0 !important;
+  padding: 3mm 4mm !important;
+  font-size: 12pt !important;
+  font-weight: 700 !important;
+  color: #3E2723 !important;
+  border-bottom: 1px solid #E8E0D8 !important;
+}
+
+.team-card__header {
+  background: #FAF6F0 !important;
+  padding: 3mm 4mm !important;
+  border-bottom: 1px solid #E8E0D8 !important;
+}
+
+.team-card__header h3 {
+  font-size: 12pt !important;
+  font-weight: 700 !important;
+}
+
+.team-card__focus {
+  font-size: 8pt !important;
+  color: #8D6E63 !important;
+}
+
+/* ===================================================
+   DETAIL ROWS — Label as cream headline bar, value below
+   =================================================== */
+.detail-row {
+  display: block !important;
+  padding: 0 !important;
+}
+
+.detail-label {
+  display: block !important;
+  background: #FAF6F0 !important;
+  padding: 1.5mm 4mm !important;
+  font-size: 8pt !important;
+  font-weight: 700 !important;
+  color: #5D4037 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  border-bottom: 1px solid #E8E0D8 !important;
+}
+
+.detail-row > span:last-child {
+  display: block !important;
+  padding: 2mm 4mm 3mm !important;
+  font-size: 10pt !important;
+  color: #3E2723 !important;
+}
+
+/* ===================================================
+   TABLE CELLS
+   =================================================== */
+th {
+  font-size: 8.5pt !important;
+  font-weight: 700 !important;
+  padding: 2mm 3mm !important;
+  text-transform: uppercase !important;
+  color: #5D4037 !important;
+  background: #FAF6F0 !important;
+  border-bottom: 1px solid #D7CFC5 !important;
+}
+
+td {
+  padding: 2mm 3mm !important;
+  border-bottom: 1px solid #E8E0D8 !important;
+}
+
+/* ===================================================
+   PAGE 1: OVERVIEW
+   =================================================== */
+.team-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 16px !important;
+}
+
+.team-card {
+  border: none !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
+  page-break-inside: avoid !important;
+}
+
+.split-table {
+  font-size: 9pt !important;
+  margin-top: 2mm !important;
+}
+
+.split-table th {
+  font-size: 8pt !important;
+}
+
+.split-table .pct {
+  font-weight: 700 !important;
+  text-align: right !important;
+}
+
+/* Comparison section */
+.comparison-section {
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  page-break-inside: avoid !important;
+  margin-bottom: 4mm !important;
+}
+
+.comparison-table {
+  font-size: 9pt !important;
+  page-break-inside: avoid !important;
+}
+
+.comp-label {
+  font-size: 8pt !important;
+  white-space: nowrap !important;
+}
+
+/* Leon sections */
+.leon-section {
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  page-break-inside: avoid !important;
+  margin-bottom: 4mm !important;
+}
+
+.leon-schedule-table {
+  font-size: 9pt !important;
+}
+
+.leon-time {
+  font-size: 9pt !important;
+  white-space: nowrap !important;
+}
+
+.leon-sub {
+  font-size: 8pt !important;
+  color: #2E7D32 !important;
+}
+
+/* Leon section dividers (MORNING/MIDDAY/AFTERNOON/EVENING) */
+.leon-section-row td {
+  background: #FAF6F0 !important;
+  font-size: 11pt !important;
+  font-weight: 800 !important;
+  color: #3E2723 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 2.5mm 3mm !important;
+  border-bottom: 2px solid #D7CFC5 !important;
+}
+
+.leon-standard {
+  font-size: 9pt !important;
+  padding: 1.5mm 0 !important;
+}
+
+.leon-standard__num {
+  width: 18px !important;
+  height: 18px !important;
+  font-size: 7pt !important;
+  background: #E8F5E9 !important;
+}
+
+/* ===================================================
+   PAGE 2: ROUTINES — Compact to fit 1 page per helper
+   =================================================== */
+.routine-helper {
+  border: none !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
+  page-break-inside: avoid !important;
+  margin-bottom: 0 !important;
+}
+
+.routine-helper + .routine-helper {
+  page-break-before: always !important;
+}
+
+.routine-helper__name {
+  font-size: 11pt !important;
+  padding: 2mm 4mm !important;
+}
+
+.routine-hours {
+  padding: 0 !important;
+  margin-bottom: 4mm !important;
+}
+
+.team-card__details {
+  padding: 0 !important;
+}
+
+.routine-block {
+  padding: 1.5mm 4mm !important;
+  page-break-inside: auto !important;
+  break-inside: auto !important;
+}
+
+.routine-block__label {
+  font-size: 7.5pt !important;
+  font-weight: 700 !important;
+  background: #FAF6F0 !important;
+  padding: 1.5mm 4mm !important;
+  margin: 0 -4mm 1mm !important;
+  border-bottom: 1px solid #E8E0D8 !important;
+}
+
+.routine-item {
+  padding: 0.5mm 0 !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+
+.routine-item__num {
+  width: 14px !important;
+  height: 14px !important;
+  font-size: 6pt !important;
+  background: #EFEBE9 !important;
+}
+
+.routine-item__title {
+  font-size: 8.5pt !important;
+}
+
+.routine-item__desc {
+  font-size: 7.5pt !important;
+}
+
+.routine-item__content {
+  flex: 1 !important;
+}
+
+.routine-sequence-item {
+  font-size: 8.5pt !important;
+  padding: 0.5mm 0 !important;
+}
+
+.routine-timed-item {
+  font-size: 8.5pt !important;
+}
+
+.routine-timed-item__time {
+  font-size: 7.5pt !important;
+  width: 20mm !important;
+}
+
+.routine-duration-item {
+  font-size: 8.5pt !important;
+}
+
+.routine-duration-item__dur,
+.routine-duration-item__duration {
+  font-size: 7pt !important;
+}
+
+.routine-block__note {
+  font-size: 7pt !important;
+  margin-top: 1mm !important;
+}
+
+/* Routine detail rows — compact */
+[data-page-id="routines"] .detail-row > span:last-child {
+  padding: 1mm 4mm 1.5mm !important;
+  font-size: 8.5pt !important;
+}
+
+[data-page-id="routines"] .detail-label {
+  font-size: 7pt !important;
+  padding: 1mm 4mm !important;
+}
+
+[data-page-id="routines"] p,
+[data-page-id="routines"] td,
+[data-page-id="routines"] li,
+[data-page-id="routines"] span,
+[data-page-id="routines"] .routine-item__title,
+[data-page-id="routines"] .routine-timed-item,
+[data-page-id="routines"] .routine-duration-item,
+[data-page-id="routines"] .routine-sequence-item {
+  font-size: 8.5pt !important;
+  line-height: 1.35 !important;
+}
+
+/* ===================================================
+   PAGE 3: STANDARDS
+   =================================================== */
+.standards-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 14px !important;
+}
+
+.standards-card {
+  border: none !important;
+  border-radius: 0 !important;
+  page-break-inside: avoid !important;
+}
+
+.standards-card--wide {
+  grid-column: 1 / -1 !important;
+}
+
+.standards-card__intro,
+.standards-card__important {
+  padding: 2mm 4mm !important;
+  font-size: 9.5pt !important;
+}
+
+.standards-card > .subsection-title,
+.standards-card > .org-principles,
+.standards-card > .org-zones,
+.standards-card > .standards-list {
+  padding-left: 4mm !important;
+  padding-right: 4mm !important;
+}
+
+.standards-list {
+  list-style: disc !important;
+  padding-left: 7mm !important;
+}
+
+.standards-list li {
+  padding: 2mm 0 !important;
+  font-size: 10pt !important;
+  list-style: disc !important;
+}
+
+.standards-list li::before {
+  content: none !important;
+}
+
+.leon-standards__list li {
+  padding: 2.5mm 0 2.5mm 7mm !important;
+  font-size: 10pt !important;
+}
+
+/* Fridge sub-cards — cream bg, no border */
+.fridge-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px !important;
+}
+
+.fridge-sub-card {
+  background: #FAF6F0 !important;
+  padding: 3mm !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+.fridge-sub-card__title {
+  font-size: 9pt !important;
+  font-weight: 700 !important;
+  color: #5D4037 !important;
+  text-transform: uppercase !important;
+  margin-bottom: 2mm !important;
+}
+
+.fridge-daily-check {
+  padding: 1.5mm 3mm !important;
+}
+
+.cast-iron-link {
+  font-size: 8pt !important;
+  padding: 0.5mm 3mm !important;
+}
+
+/* Org zones — side by side */
+.org-zones {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 10px !important;
+}
+
+.org-zone {
+  background: #FAF6F0 !important;
+  padding: 3mm !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+.org-principles li {
+  padding: 2.5mm 0 2.5mm 7mm !important;
+  font-size: 10pt !important;
+}
+
+/* ===================================================
+   PAGES 4-7: CHECKLISTS
+   =================================================== */
+
+/* Checklist Header (week title bar) */
+.checklist-header {
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 3mm 0 !important;
+  margin: 0 0 3mm 0 !important;
+  border-bottom: 1.5pt solid #3E2723 !important;
+}
+
+.checklist-header__title {
+  font-size: 16pt !important;
+}
+
+.checklist-header__dates {
+  font-size: 10pt !important;
+  color: #5D4037 !important;
+}
+
+/* Overview Tables (org, cooking, deep clean) */
+.overview-section {
+  border: none !important;
+  border-radius: 0 !important;
+  margin-bottom: 4mm !important;
+  page-break-inside: avoid !important;
+}
+
+.overview-intro {
+  font-size: 8pt !important;
+  padding: 1mm 3mm !important;
+}
+
+.overview-section .overview-table {
+  border: none !important;
+  margin-bottom: 0 !important;
+}
+
+.overview-table {
+  border: none !important;
+  border-radius: 0 !important;
+  font-size: 9pt !important;
+  margin-bottom: 3mm !important;
+  page-break-inside: avoid !important;
+}
+
+.highlight-col {
+  background: #EFEBE9 !important;
+}
+
+.overview-table .highlight-row {
+  background: #EFEBE9 !important;
+}
+
+/* Admin dates card */
+.admin-dates-card {
+  background: #FFEBEE !important;
+  border: none !important;
+  border-left: 4pt solid #C62828 !important;
+  border-radius: 0 !important;
+  margin-bottom: 4mm !important;
+  page-break-inside: avoid !important;
+}
+
+.admin-dates-card__title {
+  padding: 2mm 4mm !important;
+  font-size: 10pt !important;
+  font-weight: 700 !important;
+  color: #C62828 !important;
+}
+
+.admin-dates-card .standards-list {
+  padding: 1.5mm 4mm !important;
+}
+
+/* ===================================================
+   CHECKLIST DAY CARDS
+   =================================================== */
+.checklist-day {
+  page-break-before: always !important;
+  border: none !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+}
+
+.checklist-day:first-child {
+  page-break-before: auto !important;
+}
+
+.checklist-day__header {
+  background: none !important;
+  border-bottom: 1.5pt solid #3E2723 !important;
+  border-radius: 0 !important;
+  padding: 3mm 0 !important;
+}
+
+.checklist-day__header-left {
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 3mm !important;
+}
+
+.checklist-day__title {
+  font-size: 18pt !important;
+  font-weight: 700 !important;
+  color: #3E2723 !important;
+}
+
+.checklist-day__date {
+  font-size: 11pt !important;
+  color: #5D4037 !important;
+}
+
+.checklist-day__special {
+  font-size: 8pt !important;
+  padding: 1.5mm 0 !important;
+}
+
+/* Day-off banner */
+.day-off-banner {
+  font-size: 8pt !important;
+  padding: 1mm 3mm !important;
+  background: #E8F5E9 !important;
+  border: 1pt solid #A5D6A7 !important;
+  border-radius: 0 !important;
+  color: #2E7D32 !important;
+}
+
+/* Annotations */
+.checklist-day__annotations {
+  padding: 2mm 0 !important;
+  border-bottom: 1pt solid #D7CFC5 !important;
+}
+
+.annotation {
+  font-size: 8.5pt !important;
+  padding: 1.5mm 3mm !important;
+  border-radius: 0 !important;
+}
+
+.annotation--admin {
+  background: #FFEBEE !important;
+  border: 1px solid #EF9A9A !important;
+}
+
+.annotation--org {
+  background: #FFF3E0 !important;
+  border: 1px solid #FFCC80 !important;
+}
+
+.annotation--leon {
+  background: #E8F5E9 !important;
+  border: 1px solid #A5D6A7 !important;
+  color: #2E7D32 !important;
+}
+
+.annotation--deep-clean {
+  background: #E3F2FD !important;
+  border: 1px solid #90CAF9 !important;
+  color: #1565C0 !important;
+}
+
+/* ===================================================
+   CHECKLIST TABLE
+   =================================================== */
+.checklist-table {
+  font-size: 9pt !important;
+}
+
+.checklist-table thead {
+  position: static !important;
+}
+
+.checklist-table .col-time {
+  width: 65px !important;
+  font-size: 8pt !important;
+}
+
+.checklist-table .col-check {
+  width: 30px !important;
+}
+
+.checklist-table tr {
+  page-break-inside: avoid !important;
+}
+
+/* ===================================================
+   SECTION DIVIDERS (MORNING/MIDDAY/etc.) — Cream bar, bold
+   =================================================== */
+.slot-section td {
+  background: #FAF6F0 !important;
+  padding: 2.5mm 3mm !important;
+  font-size: 9pt !important;
+  font-weight: 700 !important;
+  color: #5D4037 !important;
+  text-transform: uppercase !important;
+  border-bottom: 1px solid #D7CFC5 !important;
+}
+
+.section-hazel,
+.section-nica {
+  font-size: 9pt !important;
+  font-weight: 700 !important;
+  color: #5D4037 !important;
+}
+
+/* ===================================================
+   TASK TYPE COLORS — Per-cell styling
+   =================================================== */
+.task--org,
+.task--organisation {
+  border-left: 3pt solid #E65100 !important;
+  background: #FFF3E0 !important;
+}
+
+.task--admin {
+  border-left: 3pt solid #C62828 !important;
+  background: #FFEBEE !important;
+}
+
+.task--leon {
+  border-left: 3pt solid #2E7D32 !important;
+  background: #E8F5E9 !important;
+}
+
+.task--deep-clean {
+  border-left: 3pt solid #1565C0 !important;
+  background: #E3F2FD !important;
+}
+
+.task--cooking {
+  border-left: 3pt solid #4527A0 !important;
+  background: #EDE7F6 !important;
+}
+
+/* ===================================================
+   CHECKBOXES — Print as empty squares
+   =================================================== */
+input[type="checkbox"],
+.check-box {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  width: 14px !important;
+  height: 14px !important;
+  border: 1.5px solid #3E2723 !important;
+  border-radius: 2px !important;
+  background: white !important;
+}
+
+.check-box:checked {
+  background: white !important;
+}
+
+.check-box:checked::after {
+  display: none !important;
+}
+
+/* ===================================================
+   REFLECTION FOOTER
+   =================================================== */
+.checklist-day__reflection,
+.day-card__reflection {
+  background: none !important;
+  border-top: 1pt solid #D7CFC5 !important;
+  padding: 4mm 0 !important;
+}
+
+.reflection-heading {
+  font-size: 9pt !important;
+  font-weight: 700 !important;
+  color: #3E2723 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+  margin-bottom: 3mm !important;
+}
+
+.reflection-field {
+  display: block !important;
+  font-size: 9pt !important;
+  margin-bottom: 4mm !important;
+}
+
+.reflection-field__label {
+  display: block !important;
+  font-size: 8.5pt !important;
+  font-weight: 600 !important;
+  color: #5D4037 !important;
+  margin-bottom: 1mm !important;
+}
+
+.write-line {
+  border-bottom: 1pt solid #3E2723 !important;
+  min-height: 6mm !important;
+}
+
+.write-line--wide {
+  min-width: 40mm !important;
+}
+
+/* Week-of line (Week 4+ template) */
+.week-of-line {
+  border: none !important;
+  border-radius: 0 !important;
+  border-bottom: 1pt solid #D7CFC5 !important;
+  padding: 2mm 0 !important;
+  margin-bottom: 3mm !important;
+}
+
+.week-of-label {
+  font-size: 11pt !important;
+}
+
+/* Date fill-in */
+.date-fill-in {
+  border-bottom: 1pt solid #3E2723 !important;
+  min-width: 35mm !important;
+}
+
+/* ===================================================
+   PAGE BREAK CONTROL
+   =================================================== */
+.team-card, .standards-card, .fridge-card,
+.overview-table-wrapper, .admin-card, .overview-card,
+.org-zone, .org-principles, .routine-item, .comparison-row,
+.leon-standards, .leon-schedule, .reflection {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+
+h2, h3, h4,
+.routine-block__label,
+.subsection-title,
+.checklist-day__header {
+  page-break-after: avoid !important;
+  break-after: avoid !important;
+}
+
+/* ===================================================
+   PRINT UTILITY CLASSES
+   =================================================== */
+.print-hidden {
+  display: none !important;
+}
+
+.print-only {
+  display: block !important;
+}

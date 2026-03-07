@@ -1,0 +1,2894 @@
+/* ===================================================
+   MAIN STYLES — Household Management Dashboard
+   All text in dark brown (#3E2723) — NEVER black
+   Warm, modern, clean aesthetic
+   =================================================== */
+
+/* === Reset === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* === Body Grid Layout === */
+body {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  grid-template-rows: var(--header-height) 1fr;
+  grid-template-areas:
+    "header header"
+    "sidebar content";
+  height: 100vh;
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  color: var(--color-text);
+  background: var(--color-bg);
+  line-height: var(--lh-normal);
+}
+
+/* ===================================================
+   HEADER
+   =================================================== */
+.site-header {
+  grid-area: header;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--sp-6);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  z-index: 10;
+}
+
+.header-left {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+}
+
+.site-header h1 {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+
+.subtitle {
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+  margin-left: var(--sp-3);
+}
+
+.header-actions {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+/* ===================================================
+   BUTTONS
+   =================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn:hover {
+  background: var(--color-bg);
+  border-color: var(--color-border-strong);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn--print::before {
+  content: "\1F5A8";
+  font-size: var(--fs-base);
+}
+
+/* ===================================================
+   SIDEBAR — Flat Page Navigation
+   =================================================== */
+.sidebar {
+  grid-area: sidebar;
+  overflow-y: auto;
+  padding: var(--sp-4);
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+}
+
+/* --- Navigation Section Group --- */
+.nav-section {
+  margin-bottom: var(--sp-6);
+}
+
+.nav-section:last-child {
+  margin-bottom: 0;
+}
+
+/* --- Group Label (REFERENCE, CHECKLISTS, TEMPLATE) --- */
+.nav-group-label {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  margin-bottom: var(--sp-3);
+  padding: 0 var(--sp-3);
+}
+
+/* --- Navigation Page Link --- */
+.nav-page {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-normal);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  margin-bottom: 2px;
+}
+
+.nav-page:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.nav-page.is-active {
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+  font-weight: var(--fw-medium);
+}
+
+.nav-page__icon {
+  flex-shrink: 0;
+  width: 18px;
+  text-align: center;
+  font-size: var(--fs-sm);
+}
+
+.nav-page__label {
+  flex: 1;
+}
+
+/* --- Navigation Pages Container --- */
+.nav-pages {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+/* ===================================================
+   LEGEND — Color Key for Task Types
+   =================================================== */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-4);
+  padding: 0 var(--sp-3);
+  margin-bottom: var(--sp-2);
+}
+
+.legend__item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-size: var(--fs-xs);
+  color: var(--color-text-secondary);
+}
+
+.legend__swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ===================================================
+   CONTENT AREA
+   =================================================== */
+.content {
+  grid-area: content;
+  overflow-y: auto;
+  padding: var(--sp-8) var(--sp-10);
+}
+
+/* ===================================================
+   DASHBOARD PAGES — Show/Hide System
+   =================================================== */
+.dashboard-page {
+  display: none;
+}
+
+.dashboard-page.is-active {
+  display: block;
+}
+
+/* ===================================================
+   PAGE 1: OVERVIEW (.page-overview)
+   =================================================== */
+.page-overview__title {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--sp-6);
+  color: var(--color-text);
+}
+
+/* --- Team Grid (Hazel vs Nica) --- */
+.team-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-6);
+  margin-bottom: var(--sp-8);
+}
+
+.team-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.team-card__header {
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.team-card__header h3 {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  margin-bottom: var(--sp-1);
+}
+
+.team-card__header .focus-label {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--fw-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.team-card__body {
+  padding: var(--sp-4) var(--sp-5);
+}
+
+/* --- Team Card Key Details --- */
+.team-card__details {
+  padding: var(--sp-3) var(--sp-5);
+}
+
+.team-card__detail {
+  font-size: var(--fs-sm);
+}
+
+.team-card__detail-label {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--sp-1);
+}
+
+.team-card__detail-value {
+  color: var(--color-text);
+  font-weight: var(--fw-medium);
+}
+
+/* --- Responsibility Split Table --- */
+.team-card__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+}
+
+.team-card__table th {
+  text-align: left;
+  padding: var(--sp-2) var(--sp-3);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.team-card__table td {
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  vertical-align: top;
+}
+
+.team-card__table tr:last-child td {
+  border-bottom: none;
+}
+
+/* --- Leon Schedule --- */
+.leon-schedule {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--sp-6);
+}
+
+.leon-schedule caption {
+  text-align: left;
+  padding: var(--sp-4) var(--sp-5);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  background: var(--color-leon-bg);
+  border-bottom: 1px solid var(--color-leon-border);
+}
+
+.leon-schedule th {
+  text-align: left;
+  padding: var(--sp-2) var(--sp-3);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.leon-schedule td {
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  vertical-align: top;
+}
+
+.leon-schedule tr:last-child td {
+  border-bottom: none;
+}
+
+/* --- Leon Standards (Non-Negotiables) --- */
+.leon-standards {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  margin-bottom: var(--sp-6);
+}
+
+.leon-standards__title {
+  padding: var(--sp-4) var(--sp-5);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  background: var(--color-leon-bg);
+  border-bottom: 1px solid var(--color-leon-border);
+}
+
+.leon-standards__list {
+  list-style: none;
+  padding: var(--sp-4) var(--sp-5);
+  counter-reset: standard;
+}
+
+.leon-standards__list li {
+  counter-increment: standard;
+  padding: var(--sp-2) 0;
+  padding-left: var(--sp-6);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+  position: relative;
+  line-height: var(--lh-relaxed);
+}
+
+.leon-standards__list li:last-child {
+  border-bottom: none;
+}
+
+.leon-standards__list li::before {
+  content: counter(standard);
+  position: absolute;
+  left: 0;
+  width: 24px;
+  height: 24px;
+  background: var(--color-leon-bg);
+  border: 1px solid var(--color-leon-border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  color: var(--color-leon);
+  text-align: center;
+  line-height: 24px;
+}
+
+/* ===================================================
+   PAGE 2: ROUTINES (.page-routines)
+   =================================================== */
+.page-routines__title {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--sp-6);
+  color: var(--color-text);
+}
+
+/* --- Routine Helper Block --- */
+.routine-helper {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  margin-bottom: var(--sp-6);
+}
+
+.routine-helper__name {
+  padding: var(--sp-4) var(--sp-5);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* --- Routine Time Block --- */
+.routine-block {
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.routine-block:last-child {
+  border-bottom: none;
+}
+
+.routine-block__label {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  margin-bottom: var(--sp-3);
+  padding-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* --- Morning Routine Items (Numbered) --- */
+.routine-item {
+  display: flex;
+  gap: var(--sp-3);
+  padding: var(--sp-2) 0;
+  align-items: flex-start;
+}
+
+.routine-item + .routine-item {
+  border-top: 1px solid var(--color-border);
+}
+
+.routine-item__num {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  margin-top: 1px;
+}
+
+.routine-item__body {
+  flex: 1;
+}
+
+.routine-item__title {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  margin-bottom: 2px;
+}
+
+.routine-item__desc {
+  font-size: var(--fs-xs);
+  color: var(--color-text-secondary);
+  line-height: var(--lh-relaxed);
+}
+
+/* --- Timed Items (Evening: time + task) --- */
+.routine-timed-item {
+  display: flex;
+  gap: var(--sp-3);
+  padding: var(--sp-2) 0;
+  font-size: var(--fs-sm);
+  align-items: baseline;
+}
+
+.routine-timed-item + .routine-timed-item {
+  border-top: 1px solid var(--color-border);
+}
+
+.routine-timed-item__time {
+  flex-shrink: 0;
+  width: 80px;
+  font-family: var(--font-body);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+  font-size: var(--fs-xs);
+}
+
+.routine-timed-item__task {
+  flex: 1;
+  color: var(--color-text-secondary);
+}
+
+/* --- Duration Items (Afternoon: task + duration) --- */
+.routine-duration-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: var(--sp-2) 0;
+  font-size: var(--fs-sm);
+}
+
+.routine-duration-item + .routine-duration-item {
+  border-top: 1px solid var(--color-border);
+}
+
+.routine-duration-item__task {
+  flex: 1;
+  color: var(--color-text-secondary);
+}
+
+.routine-duration-item__duration {
+  flex-shrink: 0;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-muted);
+  padding-left: var(--sp-3);
+}
+
+/* ===================================================
+   PAGE 3: STANDARDS (.page-standards)
+   =================================================== */
+.page-standards__title {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--sp-6);
+  color: var(--color-text);
+}
+
+/* --- Standards Grid --- */
+.standards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--sp-6);
+  margin-bottom: var(--sp-6);
+}
+
+/* --- Individual Standards Card --- */
+.standards-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.standards-card__title {
+  padding: var(--sp-4) var(--sp-6);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.standards-card__content {
+  padding: var(--sp-4) var(--sp-6);
+}
+
+.standards-card__important {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  padding: var(--sp-3) var(--sp-6);
+  border-bottom: 1px solid var(--color-border);
+  line-height: var(--lh-relaxed);
+  margin: 0;
+}
+
+/* --- Fridge Sub-Cards (4 nested) --- */
+.fridge-sub-card {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-4) var(--sp-5);
+  margin-bottom: var(--sp-3);
+}
+
+.fridge-sub-card:last-child {
+  margin-bottom: 0;
+}
+
+.fridge-sub-card__title {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  margin-bottom: var(--sp-2);
+}
+
+/* --- Standards List (bullet rules) --- */
+.standards-list {
+  list-style: none;
+  padding: 0;
+}
+
+.standards-list li {
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+  padding: var(--sp-2) 0;
+  padding-left: var(--sp-6);
+  position: relative;
+  line-height: var(--lh-relaxed);
+}
+
+.standards-list li::before {
+  content: "\2022";
+  position: absolute;
+  left: var(--sp-2);
+  color: var(--color-accent);
+  font-weight: var(--fw-bold);
+}
+
+/* --- Organisation Principles --- */
+.org-principles {
+  list-style: none;
+  padding: 0;
+  margin: var(--sp-2) 0 var(--sp-4);
+}
+
+.org-principles li {
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+  padding: var(--sp-2) 0;
+  padding-left: var(--sp-6);
+  position: relative;
+  line-height: var(--lh-relaxed);
+}
+
+.org-principles li::before {
+  content: counter(org-num) ".";
+  counter-increment: org-num;
+  position: absolute;
+  left: var(--sp-2);
+  font-weight: var(--fw-bold);
+  color: var(--color-accent);
+}
+
+.org-principles {
+  counter-reset: org-num;
+}
+
+/* --- Active / Passive Zones --- */
+.org-zones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+  margin: var(--sp-2) 0 var(--sp-4);
+}
+
+.org-zone {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-3) var(--sp-4);
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--lh-relaxed);
+}
+
+.org-zone__freq {
+  color: var(--color-text-muted);
+  font-size: var(--fs-xs);
+}
+
+.org-zone p {
+  margin-top: var(--sp-2);
+}
+
+/* ===================================================
+   PAGES 4-7: CHECKLISTS (.page-checklist)
+   =================================================== */
+
+/* --- Checklist Header --- */
+.checklist-header {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-6);
+  margin-bottom: var(--sp-6);
+  box-shadow: var(--shadow-sm);
+}
+
+.checklist-header__title {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--sp-1);
+  color: var(--color-text);
+}
+
+.checklist-header__dates {
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--sp-4);
+}
+
+.checklist-header__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+}
+
+/* --- Overview Table (org overview, cooking handover, deep clean overview) --- */
+.overview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--sp-6);
+}
+
+.overview-table th {
+  text-align: left;
+  padding: var(--sp-2) var(--sp-3);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.overview-table td {
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  vertical-align: top;
+}
+
+.overview-table tr:last-child td {
+  border-bottom: none;
+}
+
+.overview-table .highlight-row {
+  background: var(--color-accent-light);
+  font-weight: var(--fw-medium);
+}
+
+.overview-table .highlight-row td {
+  color: var(--color-text);
+}
+
+.overview-table .week-divider-row {
+  background: var(--color-accent-light);
+}
+
+.overview-table .week-divider-row td {
+  color: var(--color-accent);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: var(--sp-2) var(--sp-4);
+  border-bottom: 2px solid var(--color-border-strong);
+}
+
+/* --- Meta Badges (reused across pages) --- */
+.meta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: 100px;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+}
+
+.meta-badge--cooking {
+  background: #EDE7F6;
+  color: #4527A0;
+}
+
+.meta-badge--phase {
+  background: #F0FDF4;
+  color: #166534;
+}
+
+/* ===================================================
+   CHECKLIST DAY CARD
+   =================================================== */
+.checklist-day {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--sp-6);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.checklist-day__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.checklist-day__title {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+
+.checklist-day__date {
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+}
+
+.checklist-day__badges {
+  display: flex;
+  gap: var(--sp-2);
+  align-items: center;
+}
+
+/* --- Annotations Above the Table --- */
+.checklist-day__annotations {
+  padding: var(--sp-3) var(--sp-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.checklist-day__annotations:empty {
+  display: none;
+}
+
+/* Annotation 2-column grid — Hazel left, Nica right, shared spans both */
+.annotations-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-2);
+}
+.annotations-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.annotations-col--shared {
+  grid-column: 1 / -1;
+}
+
+.annotation {
+  display: inline-block;
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+}
+
+.annotation--admin {
+  background: var(--color-admin-bg);
+  color: var(--color-admin);
+  border: 1px solid var(--color-admin-border);
+}
+
+.annotation--org {
+  background: var(--color-org-bg);
+  color: var(--color-org);
+  border: 1px solid var(--color-org-border);
+}
+
+.annotation--leon {
+  background: var(--color-leon-bg);
+  color: var(--color-leon);
+  border: 1px solid var(--color-leon-border);
+}
+
+.annotation--deep-clean {
+  background: var(--color-deep-clean-bg);
+  color: var(--color-deep-clean);
+  border: 1px solid var(--color-deep-clean-border);
+}
+
+/* ===================================================
+   CHECKLIST TABLE — 4 Columns
+   =================================================== */
+.checklist-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+}
+
+.checklist-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.checklist-table th {
+  padding: var(--sp-2) var(--sp-3);
+  text-align: left;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.checklist-table td {
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+  color: var(--color-text-secondary);
+}
+
+.checklist-table .col-time {
+  width: 60px;
+  white-space: nowrap;
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.checklist-table .col-hazel {
+  width: auto;
+}
+
+.checklist-table .col-nica {
+  width: auto;
+}
+
+.checklist-table .col-check {
+  width: 36px;
+  text-align: center;
+}
+
+/* ===================================================
+   SECTION DIVIDER ROWS (Time Blocks)
+   =================================================== */
+.slot-section {
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.slot-section td {
+  padding: var(--sp-1) var(--sp-3);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  border-bottom: 2px solid var(--color-border-strong);
+}
+
+.section-divider {
+  color: var(--color-text-muted);
+  margin: 0 var(--sp-2);
+}
+
+/* Sub-labels within section divider */
+.slot-section__sub-labels {
+  display: flex;
+  gap: var(--sp-4);
+  margin-top: 2px;
+}
+
+.slot-section__sub-label {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--color-text-muted);
+  opacity: 0.8;
+}
+
+/* Time block background tinting */
+.slot-section--morning { background: var(--color-block-morning); }
+.slot-section--midday { background: var(--color-block-midday); }
+.slot-section--rest { background: var(--color-block-rest); }
+.slot-section--afternoon { background: var(--color-block-afternoon); }
+.slot-section--evening { background: var(--color-block-evening); }
+
+/* ===================================================
+   TASK TYPE ROW STYLING
+   =================================================== */
+.task--org {
+  border-left: 3px solid var(--color-org);
+  background: var(--color-org-bg);
+}
+
+.task--admin {
+  border-left: 3px solid var(--color-admin);
+  background: var(--color-admin-bg);
+}
+
+.task--leon {
+  border-left: 3px solid var(--color-leon);
+  background: var(--color-leon-bg);
+}
+
+.task--deep-clean {
+  border-left: 3px solid var(--color-deep-clean);
+  background: var(--color-deep-clean-bg);
+}
+
+/* ===================================================
+   CUSTOM CHECKBOX
+   =================================================== */
+.check-box {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--color-accent);
+  border-radius: 2px;
+}
+
+/* ===================================================
+   REFLECTION FOOTER
+   =================================================== */
+.checklist-day__reflection {
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--color-bg);
+  border-top: 1px solid var(--color-border);
+}
+
+.reflection-label {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--sp-3);
+}
+
+.reflection-heading {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--sp-3);
+}
+
+.reflection-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.reflection-field {
+  display: block;
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--sp-3);
+}
+
+.reflection-field__label {
+  display: block;
+  font-weight: var(--fw-medium);
+  margin-bottom: var(--sp-1);
+}
+
+.write-line {
+  border-bottom: 1px solid var(--color-border-strong);
+  min-height: 2em;
+}
+
+/* ===================================================
+   DATE FILL-IN (Week 4+)
+   =================================================== */
+.date-fill-in {
+  display: inline-block;
+  min-width: 160px;
+  border-bottom: 1px solid var(--color-text);
+  height: 1.2em;
+}
+
+/* ===================================================
+   DAY-OFF BANNER
+   =================================================== */
+.day-off-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: 100px;
+  background: var(--color-leon-bg);
+  border: 1px solid var(--color-leon-border);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--color-leon);
+}
+
+/* ===================================================
+   BADGE VARIANTS (Meta / Annotation badges)
+   =================================================== */
+.note-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.org-focus {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  background: var(--color-org-bg);
+  color: var(--color-org);
+}
+
+.deep-clean-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  background: var(--color-deep-clean-bg);
+  color: var(--color-deep-clean);
+}
+
+/* ===================================================
+   LEGACY SUPPORT — Week Header (used by existing JS)
+   =================================================== */
+.week-header {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-6);
+  margin-bottom: var(--sp-6);
+  box-shadow: var(--shadow-sm);
+}
+
+.week-header__title {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--sp-1);
+}
+
+.week-header__dates {
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--sp-4);
+}
+
+.week-header__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+}
+
+.week-header__section-title {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--sp-2);
+}
+
+.week-header__objectives {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.week-header__objectives li {
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+  padding-left: var(--sp-4);
+  position: relative;
+}
+
+.week-header__objectives li::before {
+  content: "\2022";
+  position: absolute;
+  left: var(--sp-1);
+  color: var(--color-accent);
+}
+
+.week-header__deep-clean {
+  margin-top: var(--sp-4);
+}
+
+.deep-clean-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--sp-2);
+}
+
+.deep-clean-item {
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-deep-clean-bg);
+  border: 1px solid var(--color-deep-clean-border);
+  font-size: var(--fs-xs);
+  text-align: center;
+}
+
+.deep-clean-item__day {
+  font-weight: var(--fw-semibold);
+  color: var(--color-deep-clean);
+  margin-bottom: var(--sp-1);
+}
+
+.deep-clean-item__task {
+  color: var(--color-text-secondary);
+}
+
+/* Admin key dates */
+.week-header__admin {
+  margin-top: var(--sp-4);
+  padding: var(--sp-3);
+  background: var(--color-admin-bg);
+  border: 1px solid var(--color-admin-border);
+  border-radius: var(--radius-sm);
+}
+
+.week-header__admin-title {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-admin);
+  margin-bottom: var(--sp-1);
+}
+
+.week-header__admin-item {
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+}
+
+/* ===================================================
+   LEGACY SUPPORT — Day Card (used by existing JS)
+   =================================================== */
+.day-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--sp-6);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.day-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.day-card__title {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+}
+
+.day-card__date {
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+}
+
+.day-card__meta {
+  padding: var(--sp-3) var(--sp-5);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.day-card__meta:empty {
+  display: none;
+}
+
+.day-card__learning {
+  padding: var(--sp-3) var(--sp-5);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+}
+
+.learning-title {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin-bottom: var(--sp-2);
+}
+
+.learning-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-4);
+}
+
+.learning-item {
+  font-size: var(--fs-xs);
+  color: var(--color-text-secondary);
+}
+
+.learning-item strong {
+  color: var(--color-text);
+}
+
+.day-card__reflection {
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--color-bg);
+  border-top: 1px solid var(--color-border);
+}
+
+/* ===================================================
+   LEGACY SUPPORT — Schedule Table (used by existing JS)
+   =================================================== */
+.schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+}
+
+.schedule-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.schedule-table th {
+  padding: var(--sp-2) var(--sp-3);
+  text-align: left;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.schedule-table td {
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+}
+
+.schedule-table .col-time {
+  width: 90px;
+  white-space: nowrap;
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.schedule-table .col-hazel { width: 30%; }
+.schedule-table .col-nica { width: 30%; }
+.schedule-table .col-check {
+  width: 36px;
+  text-align: center;
+}
+.schedule-table .col-notes { width: auto; }
+
+/* Legacy task type aliases */
+.task--organisation {
+  border-left: 3px solid var(--color-org);
+  background: var(--color-org-bg);
+}
+
+.task--cooking {
+  border-left: 3px solid #4527A0;
+  background: #EDE7F6;
+}
+
+/* ===================================================
+   SHARED PAGE TITLES & SECTIONS
+   =================================================== */
+.page-title {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+  margin-bottom: var(--sp-2);
+}
+
+.page-subtitle {
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--sp-6);
+}
+
+.section-title {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  margin-bottom: var(--sp-4);
+}
+
+.subsection-title {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-secondary);
+  margin-top: var(--sp-4);
+  margin-bottom: var(--sp-2);
+}
+
+/* ===================================================
+   TEAM CARD ADDITIONS (Overview Page)
+   =================================================== */
+.team-card__focus {
+  display: inline-block;
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--fw-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: var(--sp-2) 0;
+  font-size: var(--fs-sm);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+  margin-right: var(--sp-3);
+}
+
+.split-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+  margin-top: var(--sp-3);
+}
+
+.split-table th {
+  text-align: left;
+  padding: var(--sp-2) var(--sp-3);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.split-table td {
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+.split-table tr:last-child td { border-bottom: none; }
+
+.split-table .pct {
+  text-align: right;
+  font-weight: var(--fw-medium);
+  color: var(--color-accent);
+  white-space: nowrap;
+}
+
+.team-card__note {
+  padding: var(--sp-3) var(--sp-5);
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  font-style: italic;
+  line-height: var(--lh-relaxed);
+  border-top: 1px solid var(--color-border);
+}
+
+/* ===================================================
+   COMPARISON SECTION (Overview Page)
+   =================================================== */
+.comparison-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  margin-bottom: var(--sp-8);
+  padding: var(--sp-5);
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+}
+
+.comparison-table th {
+  text-align: left;
+  padding: var(--sp-2) var(--sp-3);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.comparison-table td {
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  vertical-align: top;
+  line-height: var(--lh-relaxed);
+}
+
+.comparison-table tr:last-child td { border-bottom: none; }
+
+.comp-label {
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+/* ===================================================
+   LEON SECTION ADDITIONS (Overview Page)
+   =================================================== */
+.leon-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  margin-bottom: var(--sp-6);
+  padding: var(--sp-5);
+}
+
+.leon-schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+}
+
+.leon-schedule-table th {
+  text-align: left;
+  padding: var(--sp-2) var(--sp-3);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  background: var(--color-leon-bg);
+  border-bottom: 2px solid var(--color-leon-border);
+}
+
+.leon-schedule-table td {
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  vertical-align: top;
+}
+
+.leon-schedule-table tr:last-child td { border-bottom: none; }
+
+.leon-time {
+  font-weight: var(--fw-medium);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  font-size: var(--fs-xs);
+}
+
+.leon-sub {
+  font-size: var(--fs-xs);
+  color: var(--color-leon);
+  margin-top: var(--sp-1);
+  padding-left: var(--sp-2);
+}
+
+.leon-section-row td {
+  background: var(--color-bg);
+  font-size: var(--fs-base) !important;
+  font-weight: 800 !important;
+  color: var(--color-text) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: var(--sp-3) var(--sp-3);
+  border-bottom: 2px solid var(--color-border-strong);
+}
+
+.leon-standard {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  padding: var(--sp-2) 0;
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.leon-standard:last-child { border-bottom: none; }
+
+.leon-standard__num {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  background: var(--color-leon-bg);
+  border: 1px solid var(--color-leon-border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  color: var(--color-leon);
+}
+
+.leon-standards-grid {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===================================================
+   ROUTINE ADDITIONS (Routines Page)
+   =================================================== */
+.routine-hours {
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+}
+
+.routine-item__content {
+  flex: 1;
+}
+
+.routine-sequence-item {
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+  padding: var(--sp-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.routine-sequence-item:last-child { border-bottom: none; }
+
+.routine-block__note {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.routine-duration-item__dur {
+  flex-shrink: 0;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-muted);
+  padding-left: var(--sp-3);
+}
+
+/* ===================================================
+   STANDARDS CARD ADDITIONS (Standards Page)
+   =================================================== */
+.standards-card--wide {
+  grid-column: 1 / -1;
+}
+
+.standards-card > .subsection-title,
+.standards-card > .org-principles,
+.standards-card > .org-zones,
+.standards-card > .standards-list,
+.standards-card > .cast-iron-link {
+  padding-left: var(--sp-6);
+  padding-right: var(--sp-6);
+}
+
+.standards-card__intro {
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+  padding: var(--sp-3) var(--sp-6);
+  border-bottom: 1px solid var(--color-border);
+  line-height: var(--lh-relaxed);
+}
+
+.fridge-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-6);
+}
+
+.fridge-daily-check {
+  padding: var(--sp-4) var(--sp-6);
+  border-top: 1px solid var(--color-border);
+}
+
+.cast-iron-link {
+  font-size: var(--fs-xs);
+  color: var(--color-accent);
+  padding: var(--sp-2) var(--sp-5);
+  word-break: break-all;
+}
+
+.cast-iron-link a {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+
+/* ===================================================
+   OVERVIEW SECTIONS (Week Checklist Pages)
+   =================================================== */
+.overview-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  margin-bottom: var(--sp-6);
+}
+
+.overview-section__title {
+  padding: var(--sp-4) var(--sp-5);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.overview-intro {
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+  padding: var(--sp-3) var(--sp-5);
+  border-bottom: 1px solid var(--color-border);
+  line-height: var(--lh-relaxed);
+}
+
+.overview-section .overview-table {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  margin-bottom: 0;
+}
+
+.cooking-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+}
+
+.highlight-col {
+  background: var(--color-accent-light);
+  font-weight: var(--fw-medium);
+}
+
+/* ===================================================
+   ADMIN DATES CARD (Week 1)
+   =================================================== */
+.admin-dates-card {
+  background: var(--color-admin-bg);
+  border-left: 4px solid var(--color-admin);
+  overflow: hidden;
+  margin-bottom: var(--sp-6);
+}
+
+.admin-dates-card__title {
+  padding: var(--sp-3) var(--sp-5);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  color: var(--color-admin);
+}
+
+.admin-dates-card .standards-list {
+  padding: var(--sp-3) var(--sp-5);
+}
+
+/* ===================================================
+   CHECKLIST DAY ADDITIONS
+   =================================================== */
+.checklist-day__header-left {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+}
+
+.checklist-day__special {
+  padding: var(--sp-3) var(--sp-5);
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+  background: var(--color-surface-raised);
+  border-bottom: 1px solid var(--color-border);
+  font-style: italic;
+}
+
+/* Section divider sub-labels */
+.section-hazel {
+  display: inline;
+}
+
+.section-nica {
+  display: inline;
+}
+
+/* ===================================================
+   REFLECTION LINE & WRITE LINES
+   =================================================== */
+.reflection-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-3);
+  align-items: baseline;
+  font-size: var(--fs-sm);
+}
+
+.write-line--wide {
+  flex: 1;
+  min-width: 200px;
+  border-bottom: 1px solid var(--color-border-strong);
+  min-height: 1.4em;
+}
+
+/* ===================================================
+   WEEK-OF LINE (Week 4+ Template)
+   =================================================== */
+.week-of-line {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-6);
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.week-of-label {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+/* ===================================================
+   EMPTY STATE
+   =================================================== */
+.empty-state {
+  text-align: center;
+  padding: var(--sp-10);
+  color: var(--color-text-muted);
+}
+
+/* ===================================================
+   UTILITY CLASSES
+   =================================================== */
+.no-print {
+  /* Visible on screen, hidden in print */
+}
+
+.print-only {
+  display: none !important;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ===================================================
+   SCROLLBAR STYLING (Warm, subtle)
+   =================================================== */
+.sidebar::-webkit-scrollbar,
+.content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track,
+.content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb,
+.content::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover,
+.content::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* ===================================================
+   HAMBURGER BUTTON — hidden on desktop
+   =================================================== */
+.menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--color-text);
+  cursor: pointer;
+  padding: var(--sp-1) var(--sp-2);
+  line-height: 1;
+  border-radius: var(--radius-sm);
+}
+.menu-toggle:hover {
+  background: var(--color-accent-light);
+}
+
+/* Sidebar overlay — hidden on desktop */
+.sidebar-overlay {
+  display: none;
+}
+
+/* ===================================================
+   RESPONSIVE — Tablet & Mobile (≤ 768px)
+   =================================================== */
+@media (max-width: 768px) {
+
+  /* --- Hamburger visible --- */
+  .menu-toggle {
+    display: block;
+    flex-shrink: 0;
+    margin-right: var(--sp-2);
+  }
+
+  /* --- Body: single-column, sidebar out of flow --- */
+  body {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "header"
+      "content";
+  }
+
+  /* --- Sidebar: slide-out drawer --- */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 260px;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 200;
+    background: var(--color-surface);
+    border-right: 1px solid var(--color-border);
+    padding-top: calc(var(--header-height) + var(--sp-3));
+  }
+  .sidebar.is-open {
+    transform: translateX(0);
+  }
+
+  /* --- Overlay behind sidebar --- */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(62, 39, 35, 0.3);
+    z-index: 150;
+  }
+  .sidebar-overlay.is-visible {
+    display: block;
+  }
+
+  /* --- Header: compact --- */
+  .site-header {
+    padding: 0 var(--sp-3);
+    gap: var(--sp-2);
+  }
+  .site-header h1 {
+    font-size: 1.1rem;
+  }
+  .subtitle {
+    display: none;
+  }
+  .btn--print::before {
+    content: "🖨️";
+  }
+  .btn--print {
+    padding: var(--sp-1) var(--sp-2);
+    font-size: var(--fs-xs);
+  }
+
+  /* --- Content: full width, less padding --- */
+  .content {
+    padding: var(--sp-3);
+  }
+
+  /* --- Page titles --- */
+  .page-title {
+    font-size: 1.4rem;
+  }
+  .page-subtitle {
+    font-size: var(--fs-sm);
+  }
+
+  /* --- Team grid: stack --- */
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* --- Fridge grid: stack --- */
+  .fridge-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* --- Comparison table: horizontal scroll --- */
+  .comparison-section {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* --- Checklist tables: compact --- */
+  .checklist-table {
+    font-size: 0.85rem;
+  }
+  .checklist-table .col-time {
+    width: 46px;
+    font-size: 0.75rem;
+  }
+  .checklist-table .col-check {
+    width: 30px;
+  }
+
+  /* --- Overview / cooking tables: scrollable --- */
+  .overview-section,
+  .cooking-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* --- Checklist day cards: less padding --- */
+  .checklist-day {
+    padding: var(--sp-2);
+    margin-bottom: var(--sp-3);
+  }
+
+  /* --- Annotations grid: stack to single column --- */
+  .annotations-grid {
+    grid-template-columns: 1fr;
+  }
+  .annotations-col--shared {
+    grid-column: auto;
+  }
+
+  /* --- Org zones: stack to single column --- */
+  .org-zones {
+    grid-template-columns: 1fr;
+  }
+
+  /* --- Admin dates card --- */
+  .admin-dates-card {
+    padding: var(--sp-3);
+  }
+
+  /* --- Standards cards --- */
+  .standards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* --- Leon schedule table --- */
+  .leon-section {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* --- Routine blocks --- */
+  .routine-helper {
+    padding: var(--sp-3);
+  }
+
+  /* --- Detail rows --- */
+  .detail-row {
+    flex-direction: column;
+    gap: var(--sp-1);
+  }
+}
+
+/* ===================================================
+   RESPONSIVE — Small phones (≤ 480px)
+   =================================================== */
+@media (max-width: 480px) {
+
+  .site-header h1 {
+    font-size: 0.95rem;
+  }
+
+  /* Hide print buttons on very small screens */
+  .header-actions {
+    display: none;
+  }
+
+  .content {
+    padding: var(--sp-2);
+  }
+
+  .page-title {
+    font-size: 1.2rem;
+  }
+
+  .checklist-table {
+    font-size: 0.8rem;
+  }
+  .checklist-table .col-time {
+    width: 40px;
+    font-size: 0.7rem;
+  }
+
+  .checklist-day__title {
+    font-size: 1.1rem;
+  }
+
+  .team-card {
+    padding: var(--sp-2);
+  }
+
+  .standards-card {
+    padding: var(--sp-2);
+  }
+
+  .admin-dates-card {
+    padding: var(--sp-2);
+    font-size: var(--fs-sm);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   ADMIN PANEL — Personal Dashboard (?admin mode)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Override body grid in admin mode — body becomes a simple stack */
+body.admin-mode {
+  display: block;
+  height: auto;
+}
+
+/* --- Tab Bar --- */
+.admin-tabs {
+  display: none;
+}
+.admin-mode .admin-tabs {
+  display: flex;
+  gap: 0;
+  background: var(--color-surface);
+  border-bottom: 2px solid var(--color-border);
+  padding: 0 var(--sp-4);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+/* Push all content below the fixed tab bar */
+.admin-mode .admin-panel-content {
+  margin-top: 48px;
+}
+.admin-tab {
+  padding: var(--sp-3) var(--sp-6);
+  border: none;
+  background: none;
+  font-family: var(--font-heading);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--color-muted);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.15s ease;
+}
+.admin-tab:hover {
+  color: var(--color-heading);
+  background: rgba(0,0,0,0.02);
+}
+.admin-tab.is-active {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+/* --- Panel Content --- */
+.admin-panel-content {
+  display: none;
+}
+.admin-panel-content.is-active {
+  display: block;
+}
+.admin-panel-content--household.is-active {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto 1fr;
+  grid-template-areas: "header header" "sidebar content";
+  min-height: calc(100vh - 48px);
+}
+.admin-mode .site-header { grid-area: header; }
+.admin-mode #sidebar { grid-area: sidebar; }
+.admin-mode #content { grid-area: content; }
+
+/* --- Admin Page Layout --- */
+.admin-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--sp-8) var(--sp-6);
+}
+.admin-page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--sp-6);
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+}
+.admin-page__header h2 {
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  color: var(--color-heading);
+}
+
+/* --- Shared Admin Button --- */
+.btn-admin {
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+}
+.btn-admin:hover { opacity: 0.85; }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   CALENDAR
+   ═══════════════════════════════════════════════════════════════ */
+
+.cal-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+.cal-view-toggle {
+  display: flex;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.cal-view-btn {
+  padding: var(--sp-1) var(--sp-4);
+  border: none;
+  background: white;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  font-weight: var(--fw-medium);
+}
+.cal-view-btn.is-active {
+  background: var(--color-accent);
+  color: white;
+}
+.cal-week-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.cal-nav-btn {
+  padding: var(--sp-1) var(--sp-3);
+  border: 1px solid var(--color-border);
+  background: white;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--fs-base);
+}
+.cal-nav-btn:hover { background: var(--color-surface); }
+.cal-week-label {
+  font-weight: var(--fw-semibold);
+  min-width: 160px;
+  text-align: center;
+}
+
+/* --- Week View --- */
+.cal-week {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--sp-3);
+  margin-top: var(--sp-4);
+}
+.cal-day {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  min-height: 180px;
+}
+.cal-day--off {
+  /* "off" label shows in header — no need to fade the whole day */
+}
+.cal-day__header {
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+.cal-day__name {
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-sm);
+}
+.cal-day__date {
+  font-size: var(--fs-xs);
+  color: var(--color-muted);
+  margin-left: var(--sp-2);
+}
+.cal-day__off {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--color-admin);
+  margin-top: 2px;
+}
+.cal-day__events {
+  padding: var(--sp-2);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cal-event {
+  font-size: 0.72rem;
+  padding: 3px 6px;
+  border-radius: 4px;
+  line-height: 1.3;
+  position: relative;
+}
+.cal-event--leon { background: var(--color-leon-bg); color: var(--color-leon); }
+.cal-event--admin { background: var(--color-admin-bg); color: var(--color-admin); }
+.cal-event--org { background: var(--color-org-bg); color: var(--color-org); }
+.cal-event--personal { background: #ede9fe; color: #6d28d9; }
+.cal-event--payment { background: var(--color-payment-bg); color: var(--color-payment); }
+.cal-event-del {
+  position: absolute;
+  right: 2px;
+  top: 1px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: inherit;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.cal-event:hover .cal-event-del { opacity: 1; }
+
+/* --- Month View --- */
+.cal-month { margin-top: var(--sp-4); }
+.cal-month-title {
+  font-family: var(--font-heading);
+  margin-bottom: var(--sp-3);
+  text-align: center;
+}
+.cal-month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: var(--color-border);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.cal-month-header {
+  padding: var(--sp-2);
+  background: var(--color-surface);
+  text-align: center;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  min-width: 0;
+}
+.cal-month-cell {
+  background: white;
+  padding: var(--sp-1) var(--sp-2);
+  min-height: 90px;
+  min-width: 0;
+  text-align: left;
+  vertical-align: top;
+  overflow: hidden;
+}
+.cal-month-cell--empty { background: var(--color-surface); }
+.cal-month-cell--today {
+  background: #fef3c7;
+}
+.cal-month-num {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  display: block;
+  margin-bottom: 2px;
+}
+.cal-month-cell--today .cal-month-num { font-weight: var(--fw-bold); }
+.cal-month-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.cal-mini {
+  font-size: 0.6rem;
+  line-height: 1.2;
+  padding: 1px 3px;
+  border-radius: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cal-mini--leon { background: var(--color-leon-bg); color: var(--color-leon); }
+.cal-mini--admin { background: var(--color-admin-bg); color: var(--color-admin); }
+.cal-mini--org { background: var(--color-org-bg); color: var(--color-org); }
+.cal-mini--personal { background: #ede9fe; color: #6d28d9; }
+.cal-mini--payment { background: var(--color-payment-bg); color: var(--color-payment); }
+/* Keep old dots for backwards compat but hide */
+.cal-month-dots {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+.cal-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.cal-dot--leon { background: var(--color-leon); }
+.cal-dot--admin { background: var(--color-admin); }
+.cal-dot--org { background: var(--color-org); }
+.cal-dot--personal { background: #7c3aed; }
+.cal-dot--payment { background: var(--color-payment); }
+.cal-month-legend {
+  display: flex;
+  gap: var(--sp-2);
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: var(--sp-4);
+  padding: var(--sp-2) 0;
+}
+.cal-legend-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border: 1.5px solid var(--color-border, #e0e0e0);
+  border-radius: 20px;
+  background: var(--color-surface, #fff);
+  font-size: var(--fs-xs);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: var(--color-text-muted, #666);
+}
+.cal-legend-btn:hover {
+  border-color: var(--color-primary, #4361ee);
+  color: var(--color-text);
+}
+.cal-legend-btn.is-active {
+  background: var(--color-primary, #4361ee);
+  border-color: var(--color-primary, #4361ee);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* --- Add Event Form --- */
+.cal-add-section {
+  margin-top: var(--sp-6);
+  padding: var(--sp-4);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+}
+.cal-add-section h4 {
+  margin-bottom: var(--sp-3);
+  font-size: var(--fs-sm);
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.cal-add-form {
+  display: flex;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+.cal-add-form select,
+.cal-add-form input {
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+  font-family: var(--font-body);
+}
+.cal-add-form select { width: 180px; }
+.cal-add-form input { flex: 1; min-width: 120px; }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   KANBAN BOARD
+   ═══════════════════════════════════════════════════════════════ */
+
+.kanban-add {
+  display: flex;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-6);
+  flex-wrap: wrap;
+}
+.kanban-add input {
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+  font-family: var(--font-body);
+  flex: 1;
+  min-width: 120px;
+}
+.kanban {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-4);
+  align-items: start;
+}
+.kanban-col {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: var(--sp-4);
+  min-height: 200px;
+}
+.kanban-col__title {
+  font-family: var(--font-heading);
+  font-size: var(--fs-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-muted);
+  margin-bottom: var(--sp-3);
+  padding-bottom: var(--sp-2);
+  border-bottom: 2px solid var(--color-border);
+}
+.kanban-col__title--done { color: #16a34a; border-bottom-color: #16a34a; }
+.kanban-col__items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.kanban-card {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--sp-3);
+  transition: box-shadow 0.15s ease;
+}
+.kanban-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.kanban-card--done {
+  opacity: 0.7;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+.kanban-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+}
+.kanban-card__title {
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
+}
+.kanban-card--done .kanban-card__title { text-decoration: line-through; }
+.kanban-card__del {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--color-muted);
+  padding: 0 2px;
+}
+.kanban-card__del:hover { color: #ef4444; }
+.kanban-card__desc {
+  font-size: var(--fs-xs);
+  color: var(--color-muted);
+  margin-top: 4px;
+}
+.kanban-card__actions {
+  margin-top: var(--sp-2);
+  display: flex;
+  gap: var(--sp-2);
+}
+.kanban-move {
+  padding: 2px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: white;
+  font-size: 0.7rem;
+  cursor: pointer;
+  color: var(--color-muted);
+}
+.kanban-move:hover { background: var(--color-surface); color: var(--color-heading); }
+.kanban-move--done { color: #16a34a; border-color: #86efac; }
+.kanban-move--done:hover { background: #f0fdf4; }
+.kanban-empty {
+  color: var(--color-muted);
+  font-size: var(--fs-xs);
+  text-align: center;
+  padding: var(--sp-4);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   BUDGET TRACKER
+   ═══════════════════════════════════════════════════════════════ */
+
+.projects-section-title {
+  font-family: var(--font-heading);
+  font-size: var(--fs-lg);
+  color: var(--color-heading);
+  margin-top: var(--sp-8);
+  margin-bottom: var(--sp-4);
+  padding-bottom: var(--sp-2);
+  border-bottom: 2px solid var(--color-border);
+}
+.projects-section-title:first-of-type { margin-top: 0; }
+
+.budget-add {
+  display: flex;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+  flex-wrap: wrap;
+}
+.budget-add input,
+.budget-add select {
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+  font-family: var(--font-body);
+}
+.budget-add input { flex: 1; min-width: 120px; }
+.budget-add select { min-width: 180px; }
+
+.budget-summary {
+  display: flex;
+  gap: var(--sp-6);
+  margin-bottom: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-sm);
+}
+.budget-summary:empty { display: none; }
+.budget-summary__item { display: flex; gap: var(--sp-2); align-items: center; }
+.budget-summary__label { color: var(--color-muted); }
+.budget-summary__value { font-weight: var(--fw-bold); }
+
+.budget-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--sp-3);
+}
+
+.budget-card {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-payment);
+  border-radius: var(--radius-sm);
+  padding: var(--sp-3);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  transition: box-shadow 0.15s ease;
+}
+.budget-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.budget-card--paid {
+  opacity: 0.6;
+  border-left-color: #86efac;
+  background: #f0fdf4;
+}
+
+.budget-card__check {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--color-payment);
+  flex-shrink: 0;
+}
+
+.budget-card__info { flex: 1; min-width: 0; }
+.budget-card__payee {
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
+}
+.budget-card--paid .budget-card__payee { text-decoration: line-through; }
+.budget-card__meta {
+  font-size: var(--fs-xs);
+  color: var(--color-muted);
+  margin-top: 2px;
+}
+.budget-card__amount {
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-base);
+  color: var(--color-payment);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.budget-card--paid .budget-card__amount { color: var(--color-muted); }
+.budget-card__del {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--color-muted);
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+.budget-card__del:hover { color: #ef4444; }
+
+.budget-empty {
+  color: var(--color-muted);
+  font-size: var(--fs-xs);
+  text-align: center;
+  padding: var(--sp-4);
+  grid-column: 1 / -1;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   NOTES
+   ═══════════════════════════════════════════════════════════════ */
+
+.notes-add {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-6);
+  padding: var(--sp-4);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+}
+.notes-add input,
+.notes-add textarea {
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+  font-family: var(--font-body);
+  resize: vertical;
+}
+.notes-add .btn-admin { align-self: flex-start; }
+.notes-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--sp-4);
+}
+.note-card {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-4);
+  transition: box-shadow 0.15s ease;
+}
+.note-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.note-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--sp-2);
+}
+.note-card__title {
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-base);
+}
+.note-card__date {
+  font-size: var(--fs-xs);
+  color: var(--color-muted);
+}
+.note-card__del {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--color-muted);
+}
+.note-card__del:hover { color: #ef4444; }
+.note-card__body {
+  font-size: var(--fs-sm);
+  color: var(--color-body);
+  line-height: 1.5;
+}
+.notes-empty {
+  color: var(--color-muted);
+  text-align: center;
+  padding: var(--sp-8);
+  grid-column: 1 / -1;
+}
+
+/* --- Mobile: Admin --- */
+@media (max-width: 768px) {
+  .admin-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .admin-tab {
+    padding: var(--sp-2) var(--sp-4);
+    font-size: var(--fs-sm);
+    white-space: nowrap;
+  }
+  .admin-panel-content--household.is-active {
+    display: block;
+  }
+  .cal-week {
+    grid-template-columns: 1fr;
+  }
+  .kanban {
+    grid-template-columns: 1fr;
+  }
+  .cal-add-form {
+    flex-direction: column;
+  }
+  .budget-add { flex-direction: column; }
+  .budget-list { grid-template-columns: 1fr; }
+  .budget-summary { flex-direction: column; gap: var(--sp-2); }
+}
