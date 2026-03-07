@@ -2,7 +2,7 @@
  * Admin Panel — Personal dashboard (hidden behind ?admin URL param)
  * Tabs: Household | Calendar | Projects | Notes
  */
-import { WEEK_DAYS } from './data.js?v=39';
+import { WEEK_DAYS } from './data.js?v=40';
 
 // ─── Confetti Animation ────────────────────────────────────────
 function fireConfetti(targetEl) {
@@ -291,7 +291,6 @@ export class AdminPanel {
     document.getElementById('cal-add-title').value = '';
     document.getElementById('cal-add-time').value = '';
     this.refreshCalendar();
-    this.refreshDayEvents();
   }
 
   startEditEvent(id) {
@@ -321,7 +320,8 @@ export class AdminPanel {
     document.getElementById('cal-add-btn').textContent = 'Add';
     document.getElementById('cal-cancel-btn').style.display = 'none';
     document.querySelector('.cal-add-form')?.classList.remove('is-editing');
-    this.refreshDayEvents();
+    const dayEventsPanel = document.getElementById('cal-day-events');
+    if (dayEventsPanel) dayEventsPanel.innerHTML = '';
   }
 
   /** Show all events for the currently selected day below the add form */
@@ -403,20 +403,18 @@ export class AdminPanel {
     container.querySelectorAll('.cal-day-event-row__edit[data-user-id]').forEach(btn => {
       btn.addEventListener('click', () => this.startEditEvent(parseInt(btn.dataset.userId)));
     });
-    // Bind delete buttons — built-in: hide it
+    // Bind delete buttons — built-in: hide it, then clear panel
     container.querySelectorAll('.cal-day-event-row__del[data-bi]').forEach(btn => {
       btn.addEventListener('click', () => {
         this.hiddenBuiltIns.push(btn.dataset.bi);
         this.save('admin-hidden-builtins', this.hiddenBuiltIns);
         this.refreshCalendar();
-        this.refreshDayEvents();
       });
     });
-    // Bind delete buttons — user events
+    // Bind delete buttons — user events, then clear panel
     container.querySelectorAll('.cal-day-event-row__del-user').forEach(btn => {
       btn.addEventListener('click', () => {
         this.deleteEvent(parseInt(btn.dataset.userId));
-        this.refreshDayEvents();
       });
     });
   }
@@ -494,6 +492,9 @@ export class AdminPanel {
   refreshCalendar() {
     const body = document.getElementById('cal-body');
     const label = document.getElementById('cal-week-label');
+    // Clear day events panel on any calendar refresh (week nav, view switch, etc.)
+    const dayEventsPanel = document.getElementById('cal-day-events');
+    if (dayEventsPanel) dayEventsPanel.innerHTML = '';
     if (this.calendarView === 'week') {
       const weekDays = WEEK_DAYS.filter(d => d.weekNum === this.currentWeek);
       const weekTitles = { 1: 'Week 1 — 2\u20138 Mar', 2: 'Week 2 — 9\u201315 Mar', 3: 'Week 3 — 16\u201322 Mar', 4: 'Week 4+ — 23\u201329 Mar' };
