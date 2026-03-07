@@ -2,7 +2,7 @@
  * Admin Panel — Personal dashboard (hidden behind ?admin URL param)
  * Tabs: Household | Calendar | Projects | Notes
  */
-import { WEEK_DAYS } from './data.js?v=38';
+import { WEEK_DAYS } from './data.js?v=39';
 
 // ─── Confetti Animation ────────────────────────────────────────
 function fireConfetti(targetEl) {
@@ -197,7 +197,7 @@ export class AdminPanel {
         </div>
         <div id="cal-body"></div>
         <div class="cal-add-section">
-          <h4>Add / Edit Event</h4>
+          <h4 id="cal-form-title">Add Event</h4>
           <div class="cal-add-form">
             <select id="cal-add-cat">
               <option value="personal">\u{1F481}\u200D\u2640\uFE0F Personal</option>
@@ -239,10 +239,8 @@ export class AdminPanel {
 
     panel.querySelector('#cal-add-btn').addEventListener('click', () => this.addEvent());
     panel.querySelector('#cal-cancel-btn').addEventListener('click', () => this.cancelEditEvent());
-    panel.querySelector('#cal-add-day').addEventListener('change', () => this.refreshDayEvents());
 
     this.refreshCalendar();
-    this.refreshDayEvents();
   }
 
   populateDaySelector() {
@@ -267,6 +265,7 @@ export class AdminPanel {
       this.save('admin-hidden-builtins', this.hiddenBuiltIns);
       this.events.push({ id: Date.now(), dayId, title, time, category: category || 'personal' });
       this._convertingBiRef = null;
+      document.getElementById('cal-form-title').textContent = 'Add Event';
       document.getElementById('cal-add-btn').textContent = 'Add';
       document.getElementById('cal-cancel-btn').style.display = 'none';
       document.querySelector('.cal-add-form')?.classList.remove('is-editing');
@@ -280,6 +279,7 @@ export class AdminPanel {
         ev.category = category || 'personal';
       }
       this.editingEventId = null;
+      document.getElementById('cal-form-title').textContent = 'Add Event';
       document.getElementById('cal-add-btn').textContent = 'Add';
       document.getElementById('cal-cancel-btn').style.display = 'none';
       document.querySelector('.cal-add-form')?.classList.remove('is-editing');
@@ -302,6 +302,7 @@ export class AdminPanel {
     document.getElementById('cal-add-day').value = ev.dayId;
     document.getElementById('cal-add-title').value = ev.title;
     document.getElementById('cal-add-time').value = ev.time || '';
+    document.getElementById('cal-form-title').textContent = 'Edit Event';
     document.getElementById('cal-add-btn').textContent = 'Save ✓';
     document.getElementById('cal-cancel-btn').style.display = '';
     const form = document.querySelector('.cal-add-form');
@@ -316,6 +317,7 @@ export class AdminPanel {
     document.getElementById('cal-add-cat').value = 'personal';
     document.getElementById('cal-add-title').value = '';
     document.getElementById('cal-add-time').value = '';
+    document.getElementById('cal-form-title').textContent = 'Add Event';
     document.getElementById('cal-add-btn').textContent = 'Add';
     document.getElementById('cal-cancel-btn').style.display = 'none';
     document.querySelector('.cal-add-form')?.classList.remove('is-editing');
@@ -461,6 +463,7 @@ export class AdminPanel {
     document.getElementById('cal-add-day').value = dayId;
     document.getElementById('cal-add-title').value = title;
     document.getElementById('cal-add-time').value = time;
+    document.getElementById('cal-form-title').textContent = 'Edit Event';
     document.getElementById('cal-add-btn').textContent = 'Save ✓';
     document.getElementById('cal-cancel-btn').style.display = '';
     const form = document.querySelector('.cal-add-form');
@@ -500,21 +503,59 @@ export class AdminPanel {
       body.innerHTML = this.renderMonthView();
     }
 
-    // Click-to-edit: built-in events (week view)
-    body.querySelectorAll('.cal-event[data-bi]').forEach(el => {
-      el.addEventListener('click', () => this.startEditBuiltIn(el.dataset.bi));
+    // Click event → show that day's events in the edit panel
+    const getDayIdFromRef = (ref) => {
+      if (ref.startsWith('leon-')) return ref.replace('leon-', '');
+      if (ref.startsWith('org-')) return ref.replace('org-', '');
+      if (ref.startsWith('admin-')) return ref.replace(/^admin-/, '').replace(/-\d+$/, '');
+      if (ref.startsWith('bi-')) {
+        const ev = this.builtInEvents.find(e => e.id === ref.replace('bi-', ''));
+        return ev?.dayId || '';
+      }
+      return '';
+    };
+    const showDay = (dayId) => {
+      if (!dayId) return;
+      const sel = document.getElementById('cal-add-day');
+      if (sel) sel.value = dayId;
+      this.refreshDayEvents();
+      document.getElementById('cal-day-events')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    };
+
+    // Week view + month view: built-in events
+    body.querySelectorAll('.cal-event[data-bi], .cal-mini[data-bi]').forEach(el => {
+      el.addEventListener('click', () => showDay(getDayIdFromRef(el.dataset.bi)));
     });
-    // Click-to-edit: user events (week view)
-    body.querySelectorAll('.cal-event[data-user-id]').forEach(el => {
-      el.addEventListener('click', () => this.startEditEvent(parseInt(el.dataset.userId)));
+    // Week view + month view: user events
+    body.querySelectorAll('.cal-event[data-user-id], .cal-mini[data-user-id]').forEach(el => {
+      el.addEventListener('click', () => {
+        const ev = this.events.find(e => e.id === parseInt(el.dataset.userId));
+        if (ev) showDay(ev.dayId);
+      });
     });
-    // Click-to-edit: built-in events (month view)
-    body.querySelectorAll('.cal-mini[data-bi]').forEach(el => {
-      el.addEventListener('click', () => this.startEditBuiltIn(el.dataset.bi));
-    });
-    // Click-to-edit: user events (month view)
-    body.querySelectorAll('.cal-mini[data-user-id]').forEach(el => {
-      el.addEventListener('click', () => this.startEditEvent(parseInt(el.dataset.userId)));
+    // Month view: click on day cell number to show that day
+    body.querySelectorAll('.cal-month-cell').forEach(cell => {
+      const numEl = cell.querySelector('.cal-month-num');
+      if (!numEl) return;
+      const d = parseInt(numEl.textContent);
+      if (isNaN(d)) return;
+      // Find the WEEK_DAYS entry for this date
+      const wd = WEEK_DAYS.find(w => {
+        const dateNum = parseInt(w.date);
+        return dateNum === d && w.weekNum <= 3;
+      }) || WEEK_DAYS.find(w => {
+        if (w.weekNum !== 4) return false;
+        const date = new Date(2026, 2, d);
+        const dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][date.getDay()];
+        return w.dayName === dayName && d >= 23;
+      });
+      if (wd) {
+        numEl.style.cursor = 'pointer';
+        numEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          showDay(wd.id);
+        });
+      }
     });
 
     // Bind legend filter buttons (month view)
@@ -730,7 +771,7 @@ export class AdminPanel {
         </div>
 
         <!-- BUDGET TRACKER -->
-        <h3 class="projects-section-title">\u{1F4B8} Budget Tracker</h3>
+        <h3 class="projects-section-title" id="budget-form-title">\u{1F4B8} Add Payment</h3>
         <div class="budget-add">
           <input type="text" id="budget-payee" placeholder="What is it for?">
           <input type="number" id="budget-amount" placeholder="Amount (S$)" min="0" step="0.01">
@@ -742,7 +783,7 @@ export class AdminPanel {
         <div class="budget-list" id="budget-list"></div>
 
         <!-- TASK BOARD -->
-        <h3 class="projects-section-title">\u{1F4CB} Task Board</h3>
+        <h3 class="projects-section-title" id="kanban-form-title">\u{1F4CB} Add Task</h3>
         <div class="kanban-add">
           <input type="text" id="kanban-title" placeholder="New task title">
           <input type="text" id="kanban-desc" placeholder="Description (optional)">
@@ -801,6 +842,7 @@ export class AdminPanel {
     const resetForm = () => {
       document.getElementById('budget-payee').value = '';
       document.getElementById('budget-amount').value = '';
+      document.getElementById('budget-form-title').textContent = '\u{1F4B8} Add Payment';
       document.getElementById('budget-add-btn').textContent = 'Add Payment';
       document.getElementById('budget-cancel-btn').style.display = 'none';
       document.querySelector('.budget-add')?.classList.remove('is-editing');
@@ -845,6 +887,7 @@ export class AdminPanel {
     document.getElementById('budget-payee').value = p.payee;
     document.getElementById('budget-amount').value = p.amount;
     document.getElementById('budget-day').value = p.dayId;
+    document.getElementById('budget-form-title').textContent = '\u{1F4B8} Edit Payment';
     document.getElementById('budget-add-btn').textContent = 'Save ✓';
     document.getElementById('budget-cancel-btn').style.display = '';
     const form = document.querySelector('.budget-add');
@@ -861,6 +904,7 @@ export class AdminPanel {
     document.getElementById('budget-payee').value = p.payee;
     document.getElementById('budget-amount').value = p.amount || '';
     if (p.dayId) document.getElementById('budget-day').value = p.dayId;
+    document.getElementById('budget-form-title').textContent = '\u{1F4B8} Edit Payment';
     document.getElementById('budget-add-btn').textContent = 'Save ✓';
     document.getElementById('budget-cancel-btn').style.display = '';
     const form = document.querySelector('.budget-add');
@@ -874,6 +918,7 @@ export class AdminPanel {
     this._convertingBiPayment = null;
     document.getElementById('budget-payee').value = '';
     document.getElementById('budget-amount').value = '';
+    document.getElementById('budget-form-title').textContent = '\u{1F4B8} Add Payment';
     document.getElementById('budget-add-btn').textContent = 'Add Payment';
     document.getElementById('budget-cancel-btn').style.display = 'none';
     document.querySelector('.budget-add')?.classList.remove('is-editing');
@@ -999,6 +1044,7 @@ export class AdminPanel {
         task.desc = desc;
       }
       this.editingTaskId = null;
+      document.getElementById('kanban-form-title').textContent = '\u{1F4CB} Add Task';
       document.getElementById('kanban-add-btn').textContent = 'Add Task';
       document.getElementById('kanban-cancel-btn').style.display = 'none';
       document.querySelector('.kanban-add')?.classList.remove('is-editing');
@@ -1018,6 +1064,7 @@ export class AdminPanel {
     this.editingTaskId = id;
     document.getElementById('kanban-title').value = task.title;
     document.getElementById('kanban-desc').value = task.desc || '';
+    document.getElementById('kanban-form-title').textContent = '\u{1F4CB} Edit Task';
     document.getElementById('kanban-add-btn').textContent = 'Save ✓';
     document.getElementById('kanban-cancel-btn').style.display = '';
     const form = document.querySelector('.kanban-add');
@@ -1030,6 +1077,7 @@ export class AdminPanel {
     this.editingTaskId = null;
     document.getElementById('kanban-title').value = '';
     document.getElementById('kanban-desc').value = '';
+    document.getElementById('kanban-form-title').textContent = '\u{1F4CB} Add Task';
     document.getElementById('kanban-add-btn').textContent = 'Add Task';
     document.getElementById('kanban-cancel-btn').style.display = 'none';
     document.querySelector('.kanban-add')?.classList.remove('is-editing');
