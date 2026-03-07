@@ -2,7 +2,7 @@
  * Admin Panel — Personal dashboard (hidden behind ?admin URL param)
  * Tabs: Household | Calendar | Projects | Notes
  */
-import { WEEK_DAYS } from './data.js?v=34';
+import { WEEK_DAYS } from './data.js?v=35';
 
 // ─── Confetti Animation ────────────────────────────────────────
 function fireConfetti(targetEl) {
@@ -485,7 +485,7 @@ export class AdminPanel {
       <div class="cal-day${isOff ? ' cal-day--off' : ''}">
         <div class="cal-day__header">
           <span class="cal-day__name">${shortName}</span>
-          <span class="cal-day__date">${day.date} Mar</span>
+          <span class="cal-day__date">${day.date}</span>
           ${isOff ? `<span class="cal-day__off">${offLabel}</span>` : ''}
         </div>
         <div class="cal-day__events">${events.join('')}</div>

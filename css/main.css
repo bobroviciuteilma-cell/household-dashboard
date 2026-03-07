@@ -2482,27 +2482,27 @@ body.admin-mode {
 .cal-event--personal { background: #ede9fe; color: #6d28d9; }
 .cal-event--payment { background: var(--color-payment-bg); color: var(--color-payment); }
 .cal-event-actions {
-  position: absolute;
-  right: 2px;
-  top: 1px;
-  display: flex;
+  display: inline-flex;
   gap: 2px;
-  opacity: 0;
-  transition: opacity 0.15s;
+  margin-left: 4px;
+  vertical-align: middle;
 }
-.cal-event:hover .cal-event-actions { opacity: 1; }
 .cal-event-edit,
 .cal-event-edit-bi,
 .cal-event-del {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.8rem;
-  color: inherit;
-  padding: 0 1px;
+  font-size: 0.75rem;
+  padding: 0 2px;
   line-height: 1;
+  opacity: 0.5;
+  transition: opacity 0.15s;
 }
-.cal-event-del:hover { color: #ef4444; }
+.cal-event-edit:hover,
+.cal-event-edit-bi:hover { opacity: 1; }
+.cal-event-del { color: inherit; }
+.cal-event-del:hover { opacity: 1; color: #ef4444; }
 
 /* --- Month View --- */
 .cal-month { margin-top: var(--sp-4); }
@@ -2730,10 +2730,10 @@ body.admin-mode {
   cursor: pointer;
   font-size: 0.85rem;
   padding: 0 2px;
-  opacity: 0.4;
+  opacity: 0.6;
   transition: opacity 0.15s;
 }
-.kanban-card:hover .kanban-card__edit { opacity: 1; }
+.kanban-card__edit:hover { opacity: 1; }
 .kanban-card__del {
   background: none;
   border: none;
