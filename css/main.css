@@ -2492,6 +2492,7 @@ body.admin-mode {
 }
 .cal-event:hover .cal-event-actions { opacity: 1; }
 .cal-event-edit,
+.cal-event-edit-bi,
 .cal-event-del {
   background: none;
   border: none;

@@ -2,7 +2,7 @@
  * Admin Panel — Personal dashboard (hidden behind ?admin URL param)
  * Tabs: Household | Calendar | Projects | Notes
  */
-import { WEEK_DAYS } from './data.js?v=33';
+import { WEEK_DAYS } from './data.js?v=34';
 
 // ─── Confetti Animation ────────────────────────────────────────
 function fireConfetti(targetEl) {
@@ -99,6 +99,7 @@ export class AdminPanel {
     this.monthFilter = 'all';
     this.editingEventId = null;
     this.editingTaskId = null;
+    this.hiddenBuiltIns = this.load('admin-hidden-builtins') || [];
   }
 
   detectCurrentWeek() {
@@ -255,8 +256,17 @@ export class AdminPanel {
     const category = document.getElementById('cal-add-cat').value;
     if (!title) return;
 
-    if (this.editingEventId !== null) {
-      // Update existing event
+    if (this._convertingBiRef) {
+      // Converting a built-in event: hide original, create user event
+      this.hiddenBuiltIns.push(this._convertingBiRef);
+      this.save('admin-hidden-builtins', this.hiddenBuiltIns);
+      this.events.push({ id: Date.now(), dayId, title, time, category: category || 'personal' });
+      this._convertingBiRef = null;
+      document.getElementById('cal-add-btn').textContent = 'Add';
+      document.getElementById('cal-cancel-btn').style.display = 'none';
+      document.querySelector('.cal-add-form')?.classList.remove('is-editing');
+    } else if (this.editingEventId !== null) {
+      // Update existing user event
       const ev = this.events.find(e => e.id === this.editingEventId);
       if (ev) {
         ev.dayId = dayId;
@@ -296,12 +306,63 @@ export class AdminPanel {
 
   cancelEditEvent() {
     this.editingEventId = null;
+    this._convertingBiRef = null;
     document.getElementById('cal-add-cat').value = 'personal';
     document.getElementById('cal-add-title').value = '';
     document.getElementById('cal-add-time').value = '';
     document.getElementById('cal-add-btn').textContent = 'Add';
     document.getElementById('cal-cancel-btn').style.display = 'none';
     document.querySelector('.cal-add-form')?.classList.remove('is-editing');
+  }
+
+  /** Edit a built-in event: pre-fill the form so user can modify, then save as user event */
+  startEditBuiltIn(biRef) {
+    // Parse the ref to figure out what built-in event it is
+    let title = '', time = '', category = 'personal', dayId = '';
+
+    if (biRef.startsWith('leon-')) {
+      dayId = biRef.replace('leon-', '');
+      const wd = WEEK_DAYS.find(w => w.id === dayId);
+      title = wd?.leonActivity || '';
+      category = 'leon';
+    } else if (biRef.startsWith('admin-')) {
+      const parts = biRef.split('-'); // admin-w1-mon-0
+      const idx = parseInt(parts.pop());
+      dayId = parts.slice(1).join('-');
+      const wd = WEEK_DAYS.find(w => w.id === dayId);
+      title = wd?.adminEvents?.[idx] || '';
+      category = 'admin';
+    } else if (biRef.startsWith('org-')) {
+      dayId = biRef.replace('org-', '');
+      const wd = WEEK_DAYS.find(w => w.id === dayId);
+      title = wd?.orgTask || '';
+      time = wd?.orgTime || '';
+      category = 'org';
+    } else if (biRef.startsWith('bi-')) {
+      const biId = biRef.replace('bi-', '');
+      const ev = this.builtInEvents.find(e => e.id === biId);
+      if (ev) {
+        title = ev.title;
+        time = ev.time || '';
+        dayId = ev.dayId;
+        category = 'personal';
+      }
+    }
+
+    if (!dayId) return;
+
+    this._convertingBiRef = biRef;
+    this.editingEventId = null;
+    document.getElementById('cal-add-cat').value = category;
+    document.getElementById('cal-add-day').value = dayId;
+    document.getElementById('cal-add-title').value = title;
+    document.getElementById('cal-add-time').value = time;
+    document.getElementById('cal-add-btn').textContent = 'Save ✓';
+    document.getElementById('cal-cancel-btn').style.display = '';
+    const form = document.querySelector('.cal-add-form');
+    form?.classList.add('is-editing');
+    form?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    document.getElementById('cal-add-title').focus();
   }
 
   deleteEvent(id) {
@@ -335,7 +396,11 @@ export class AdminPanel {
       body.innerHTML = this.renderMonthView();
     }
 
-    // Bind edit & delete buttons
+    // Bind edit buttons — built-in events
+    body.querySelectorAll('.cal-event-edit-bi').forEach(btn => {
+      btn.addEventListener('click', () => this.startEditBuiltIn(btn.dataset.bi));
+    });
+    // Bind edit & delete buttons — user events
     body.querySelectorAll('.cal-event-edit').forEach(btn => {
       btn.addEventListener('click', () => this.startEditEvent(parseInt(btn.dataset.id)));
     });
@@ -354,28 +419,42 @@ export class AdminPanel {
 
   renderCalDay(day) {
     const events = [];
+    const hidden = this.hiddenBuiltIns;
+    const editBtn = (biRef) => `<span class="cal-event-actions"><button class="cal-event-edit-bi" data-bi="${biRef}">✏️</button></span>`;
 
     // Leon's activity
     if (day.leonActivity) {
-      events.push(`<div class="cal-event cal-event--leon">\u{1F476}\u{1F3FC} ${day.leonActivity}</div>`);
+      const ref = `leon-${day.id}`;
+      if (!hidden.includes(ref)) {
+        events.push(`<div class="cal-event cal-event--leon">\u{1F476}\u{1F3FC} ${day.leonActivity}${editBtn(ref)}</div>`);
+      }
     }
 
     // Admin events
     if (day.adminEvents?.length) {
-      day.adminEvents.forEach(e => {
-        events.push(`<div class="cal-event cal-event--admin">\u{1F4CC} ${e}</div>`);
+      day.adminEvents.forEach((e, i) => {
+        const ref = `admin-${day.id}-${i}`;
+        if (!hidden.includes(ref)) {
+          events.push(`<div class="cal-event cal-event--admin">\u{1F4CC} ${e}${editBtn(ref)}</div>`);
+        }
       });
     }
 
     // Org task
     if (day.orgTask) {
-      events.push(`<div class="cal-event cal-event--org">\u{1F4E6} ${day.orgTask}${day.orgTime ? ' \u2014 ' + day.orgTime : ''}</div>`);
+      const ref = `org-${day.id}`;
+      if (!hidden.includes(ref)) {
+        events.push(`<div class="cal-event cal-event--org">\u{1F4E6} ${day.orgTask}${day.orgTime ? ' \u2014 ' + day.orgTime : ''}${editBtn(ref)}</div>`);
+      }
     }
 
     // Built-in personal events
     const builtIn = this.builtInEvents.filter(e => e.dayId === day.id);
     builtIn.forEach(e => {
-      events.push(`<div class="cal-event cal-event--personal">\u{1F481}\u200D\u2640\uFE0F ${e.time ? e.time + ' ' : ''}${e.title}</div>`);
+      const ref = `bi-${e.id}`;
+      if (!hidden.includes(ref)) {
+        events.push(`<div class="cal-event cal-event--personal">\u{1F481}\u200D\u2640\uFE0F ${e.time ? e.time + ' ' : ''}${e.title}${editBtn(ref)}</div>`);
+      }
     });
 
     // User-added events (with category support)
