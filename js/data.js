@@ -843,7 +843,7 @@ export const WEEK_DAYS = [
     date: '9 March',
     hazelOff: false,
     nicaOff: false,
-    adminEvents: ['Painter coming at 11:00 AM'],
+    adminEvents: [],
     orgTask: 'Main kitchen cupboards',
     orgType: 'joint',
     orgTime: 'AM 11:00–1:00 PM + PM 4:30–6:00',
