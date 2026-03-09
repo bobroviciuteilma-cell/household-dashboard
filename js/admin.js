@@ -2,7 +2,7 @@
  * Admin Panel — Personal dashboard (hidden behind ?admin URL param)
  * Tabs: Household | Calendar | Projects | Notes
  */
-import { WEEK_DAYS } from './data.js?v=44';
+import { WEEK_DAYS } from './data.js?v=45';
 
 // ─── Confetti Animation ────────────────────────────────────────
 function fireConfetti(targetEl) {
@@ -95,6 +95,27 @@ export class AdminPanel {
       // ── One-offs ───────────────────────────────────
       { id: 'bp-agency', payee: 'Filipino Agency', amount: 1718, dayId: 'w2-sun', dueLabel: 'Sunday 15 March', paid: false },
     ];
+    // Generate recurring Gym events for every Monday (weeks 5+)
+    for (let week = 5; week <= 44; week++) {
+      const startDate = new Date(2026, 2, 2 + (week - 1) * 7); // Monday of this week
+      if (startDate > new Date(2026, 11, 31)) break;
+      const dayId = `d-${startDate.getFullYear()}-${String(startDate.getMonth()+1).padStart(2,'0')}-${String(startDate.getDate()).padStart(2,'0')}`;
+      this.builtInEvents.push({ id: `bi-gym-${dayId}`, dayId, title: 'Gym', time: '10:30 AM' });
+    }
+
+    // Generate recurring salary payments (15th of each month, April–December)
+    const salMonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const salDayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    for (let m = 3; m <= 11; m++) { // April=3 to December=11
+      const date15 = new Date(2026, m, 15);
+      const dayId = `d-2026-${String(m+1).padStart(2,'0')}-15`;
+      const dueLabel = `${salDayNames[date15.getDay()]} 15 ${salMonths[m]}`;
+      this.builtInPayments.push(
+        { id: `bp-nica-sal-${m}`, payee: 'Nica \u2014 salary', amount: 1350, dayId, dueLabel, paid: false },
+        { id: `bp-hazel-sal-${m}`, payee: 'Hazel \u2014 salary', amount: 900, dayId, dueLabel, paid: false }
+      );
+    }
+
     this.events = this.load('admin-events') || [];
     this.tasks = this.load('admin-tasks') || [];
     this.notes = this.load('admin-notes') || [];
