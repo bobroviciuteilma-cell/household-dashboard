@@ -96,8 +96,8 @@
   --sprint-phase-c-bg: #E8F5E9;
   --sprint-phase-d:    #C62828;   /* YouTube + Scale — red */
   --sprint-phase-d-bg: #FFEBEE;
-  --sprint-today:      #FF6F00;   /* Amber highlight for today */
-  --sprint-today-bg:   #FFF3E0;
+  --sprint-today:      #5D4037;   /* Dark brown — matches dashboard palette */
+  --sprint-today-bg:   #EFEBE9;
   --sprint-done:       #2E7D32;
 
   /* === Borders & Shadows === */

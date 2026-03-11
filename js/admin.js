@@ -2,7 +2,8 @@
  * Admin Panel — Personal dashboard (hidden behind ?admin URL param)
  * Tabs: Household | Calendar | Projects | Notes
  */
-import { WEEK_DAYS, SPRINT_PLAN } from './data.js?v=46';
+import { WEEK_DAYS, SPRINT_PLAN } from './data.js?v=49';
+import { SPRINT_TASK_DETAILS, SPRINT_DAY_CONTEXT, SPRINT_ASSISTANT_MESSAGES } from './sprint-content.js?v=2';
 
 // ─── Confetti Animation ────────────────────────────────────────
 function fireConfetti(targetEl) {
@@ -131,6 +132,10 @@ export class AdminPanel {
     this.sprintWeekNum = this.getSprintWeek();
     this.sprintCustomTasks = this.load('sprint-custom-tasks') || {};
     this.editingSprintTask = null;
+    this.sprintMode = this.load('sprint-mode') || 'today'; // 'today' | 'week' | 'map'
+    this.sprintExpandedTask = null; // key of currently expanded task
+    this.sprintStepChecks = this.load('sprint-step-checks') || {}; // sub-step checkboxes
+    this.sprintGoalValues = this.load('sprint-goal-values') || {}; // { subscribers: [{date,value},...], ... }
   }
 
   detectCurrentWeek() {
@@ -1048,26 +1053,25 @@ export class AdminPanel {
     panel.innerHTML = `
       <div class="admin-page sprint-page">
         <div class="sprint-header" id="sprint-header"></div>
-        <div class="sprint-week-nav" id="sprint-week-nav"></div>
-        <div class="sprint-week" id="sprint-week-grid"></div>
-        <div class="sprint-sunday" id="sprint-sunday"></div>
-        <div class="sprint-add-task" id="sprint-add-task" style="display:none">
-          <input type="text" id="sprint-new-task" placeholder="New task...">
-          <select id="sprint-new-deliv">
-            ${SPRINT_PLAN.deliverables.map(d => `<option value="${d.id}">#${d.id} ${d.name}</option>`).join('')}
-          </select>
-          <button id="sprint-add-btn" class="btn-admin">Add</button>
-          <button id="sprint-add-cancel" class="btn-cancel">Cancel</button>
-        </div>
-        <div class="sprint-bottom">
-          <div class="sprint-deliverables" id="sprint-deliverables"></div>
-          <div class="sprint-milestones" id="sprint-milestones"></div>
+        <div class="sprint-layout">
+          <div class="sprint-main" id="sprint-main"></div>
+          <div class="sprint-sidebar" id="sprint-sidebar"></div>
         </div>
       </div>
     `;
 
-    // Week nav bindings
+    // Delegated event handler for all sprint interactions
     panel.addEventListener('click', (e) => {
+      // Mode toggle
+      const modeBtn = e.target.closest('.sprint-mode-btn');
+      if (modeBtn) {
+        this.sprintMode = modeBtn.dataset.mode;
+        this.save('sprint-mode', this.sprintMode);
+        this.sprintExpandedTask = null;
+        this.refreshSprint();
+        return;
+      }
+      // Week nav
       const navBtn = e.target.closest('.sprint-nav-btn');
       if (navBtn) {
         const dir = parseInt(navBtn.dataset.dir);
@@ -1080,36 +1084,77 @@ export class AdminPanel {
         this.refreshSprint();
         return;
       }
-      // Day add button
+      // Task expansion toggle (Today view)
+      const taskHeader = e.target.closest('.sprint-tcard__header');
+      if (taskHeader && !e.target.closest('.sprint-tcard__check')) {
+        const key = taskHeader.dataset.taskKey;
+        this.sprintExpandedTask = this.sprintExpandedTask === key ? null : key;
+        this.refreshSprint();
+        return;
+      }
+      // Task complete button (inside expanded detail)
+      const completeBtn = e.target.closest('.sprint-tcard__complete-btn');
+      if (completeBtn) {
+        const key = completeBtn.dataset.key;
+        this.sprintChecks[key] = true;
+        this.save('sprint-checks', this.sprintChecks);
+        this.sprintExpandedTask = null;
+        this.refreshSprint();
+        return;
+      }
+      // Day add button (Week view)
       const addBtn = e.target.closest('.sprint-day__add');
       if (addBtn) {
         this._addingTaskDay = addBtn.dataset.day;
         this._addingTaskWeek = parseInt(addBtn.dataset.week);
         const addForm = document.getElementById('sprint-add-task');
-        addForm.style.display = 'flex';
-        document.getElementById('sprint-new-task').focus();
+        if (addForm) { addForm.style.display = 'flex'; document.getElementById('sprint-new-task')?.focus(); }
+        return;
+      }
+      // Goal edit button
+      const goalEdit = e.target.closest('.sprint-goal__edit-btn');
+      if (goalEdit) {
+        const goalKey = goalEdit.dataset.goal;
+        const input = document.getElementById(`goal-input-${goalKey}`);
+        if (input) {
+          input.style.display = input.style.display === 'none' ? 'flex' : 'none';
+          if (input.style.display === 'flex') input.querySelector('input')?.focus();
+        }
+        return;
+      }
+      // Goal save
+      const goalSave = e.target.closest('.sprint-goal__save-btn');
+      if (goalSave) {
+        const goalKey = goalSave.dataset.goal;
+        const val = parseInt(document.getElementById(`goal-val-${goalKey}`)?.value);
+        if (!isNaN(val)) {
+          if (!this.sprintGoalValues[goalKey]) this.sprintGoalValues[goalKey] = [];
+          this.sprintGoalValues[goalKey].push({ date: new Date().toISOString().split('T')[0], value: val });
+          this.save('sprint-goal-values', this.sprintGoalValues);
+          this.refreshSprint();
+        }
         return;
       }
     });
 
-    // Checkbox binding (delegated)
+    // Checkbox binding (delegated) for both views
     panel.addEventListener('change', (e) => {
-      const cb = e.target.closest('.sprint-task__check');
-      if (!cb) return;
-      const key = cb.dataset.key;
-      this.sprintChecks[key] = cb.checked;
-      this.save('sprint-checks', this.sprintChecks);
-      this.refreshSprint();
-    });
-
-    // Add task form
-    document.getElementById('sprint-add-btn')?.addEventListener('click', () => this.addSprintTask());
-    document.getElementById('sprint-add-cancel')?.addEventListener('click', () => {
-      document.getElementById('sprint-add-task').style.display = 'none';
-      document.getElementById('sprint-new-task').value = '';
-    });
-    document.getElementById('sprint-new-task')?.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') this.addSprintTask();
+      const cb = e.target.closest('.sprint-task__check') || e.target.closest('.sprint-tcard__check');
+      if (cb) {
+        const key = cb.dataset.key;
+        this.sprintChecks[key] = cb.checked;
+        this.save('sprint-checks', this.sprintChecks);
+        this.refreshSprint();
+        return;
+      }
+      // Sub-step checkboxes
+      const stepCb = e.target.closest('.sprint-step__check');
+      if (stepCb) {
+        const stepKey = stepCb.dataset.stepKey;
+        this.sprintStepChecks[stepKey] = stepCb.checked;
+        this.save('sprint-step-checks', this.sprintStepChecks);
+        return;
+      }
     });
 
     this.refreshSprint();
@@ -1140,82 +1185,433 @@ export class AdminPanel {
     this.refreshSprint();
   }
 
+  // ── Get today's tasks from sprint data ──
+  getTodayTasks() {
+    const currentDay = this.getSprintDay();
+    const dayKeys = ['mon','tue','wed','thu','fri','sat'];
+    for (const week of SPRINT_PLAN.weeks) {
+      for (const dk of dayKeys) {
+        const day = week.days[dk];
+        if (day && day.dayNum === currentDay) {
+          const tasks = day.tasks.map((t, idx) => ({
+            ...t,
+            key: this.getTaskKey(week.weekNum, dk, idx),
+            isCustom: false,
+          }));
+          const customs = this.sprintCustomTasks[`w${week.weekNum}-${dk}`] || [];
+          customs.forEach((ct, ci) => {
+            tasks.push({ ...ct, key: `w${week.weekNum}-${dk}-c${ci}`, isCustom: true, customIdx: ci });
+          });
+          return { tasks, dayNum: currentDay, weekNum: week.weekNum, dayKey: dk };
+        }
+      }
+      // Check Sunday
+      if (week.sunday && week.sunday.dayNum === currentDay) {
+        return { tasks: [], dayNum: currentDay, weekNum: week.weekNum, dayKey: 'sun', sundayNote: week.sunday.note };
+      }
+    }
+    return { tasks: [], dayNum: currentDay, weekNum: 1, dayKey: 'mon' };
+  }
+
+  // ── Calculate streak (consecutive days with all tasks done) ──
+  getStreak() {
+    const currentDay = this.getSprintDay();
+    let streak = 0;
+    const dayKeys = ['mon','tue','wed','thu','fri','sat'];
+    for (let d = currentDay - 1; d >= 1; d--) {
+      let found = false;
+      for (const week of SPRINT_PLAN.weeks) {
+        for (const dk of dayKeys) {
+          const day = week.days[dk];
+          if (day && day.dayNum === d) {
+            found = true;
+            const allDone = day.tasks.every((t, idx) => this.sprintChecks[this.getTaskKey(week.weekNum, dk, idx)]);
+            if (allDone && day.tasks.length > 0) { streak++; } else { return streak; }
+          }
+        }
+        if (week.sunday && week.sunday.dayNum === d) { found = true; streak++; } // Sundays count as done
+      }
+      if (!found) return streak;
+    }
+    return streak;
+  }
+
+  // ── Generate sparkline SVG for goal trend ──
+  renderSparkline(values, target) {
+    if (!values || values.length < 2) return '';
+    const nums = values.map(v => v.value);
+    const max = Math.max(target, ...nums);
+    const min = Math.min(0, ...nums);
+    const range = max - min || 1;
+    const w = 80, h = 24;
+    const points = nums.map((v, i) => {
+      const x = (i / (nums.length - 1)) * w;
+      const y = h - ((v - min) / range) * h;
+      return `${x},${y}`;
+    }).join(' ');
+    const lastVal = nums[nums.length - 1];
+    const prevVal = nums.length >= 2 ? nums[nums.length - 2] : lastVal;
+    const trend = lastVal > prevVal ? '\u2191' : lastVal < prevVal ? '\u2193' : '\u2192';
+    const trendColor = lastVal > prevVal ? 'var(--sprint-done)' : lastVal < prevVal ? 'var(--color-admin)' : 'var(--color-text-muted)';
+    return `<svg viewBox="0 0 ${w} ${h}" class="sprint-sparkline"><polyline points="${points}" fill="none" stroke="var(--color-accent)" stroke-width="1.5"/></svg><span style="color:${trendColor};font-size:var(--fs-xs)">${trend}</span>`;
+  }
+
   refreshSprint() {
     const currentDay = this.getSprintDay();
     const currentPhase = this.getSprintPhase(currentDay);
     const remaining = Math.max(0, 98 - currentDay);
-    const overallPct = Math.round((currentDay / 98) * 100);
+    // Calculate overall progress based on completed tasks, not just day count
+    let totalTasks = 0, doneTasks = 0;
+    const dayKeys = ['mon','tue','wed','thu','fri','sat'];
+    SPRINT_PLAN.weeks.forEach(week => {
+      dayKeys.forEach(dk => {
+        const day = week.days[dk];
+        if (!day) return;
+        day.tasks.forEach((t, idx) => {
+          totalTasks++;
+          if (this.sprintChecks[this.getTaskKey(week.weekNum, dk, idx)]) doneTasks++;
+        });
+      });
+    });
+    const overallPct = totalTasks ? Math.round((doneTasks / totalTasks) * 100) : 0;
 
-    // Phase progress
-    const phasePct = Math.round(((currentDay - currentPhase.startDay) / (currentPhase.endDay - currentPhase.startDay + 1)) * 100);
+    // Calculate phase-specific progress
+    let phaseTotalTasks = 0, phaseDoneTasks = 0;
+    SPRINT_PLAN.weeks.forEach(week => {
+      if (week.phase !== currentPhase.id) return;
+      dayKeys.forEach(dk => {
+        const day = week.days[dk];
+        if (!day) return;
+        day.tasks.forEach((t, idx) => {
+          phaseTotalTasks++;
+          if (this.sprintChecks[this.getTaskKey(week.weekNum, dk, idx)]) phaseDoneTasks++;
+        });
+      });
+    });
+    const phasePct = phaseTotalTasks ? Math.round((phaseDoneTasks / phaseTotalTasks) * 100) : 0;
 
-    // ── Header ──
+    // ── Header (shared across all modes) ──
     document.getElementById('sprint-header').innerHTML = `
       <div class="sprint-header__top">
         <div class="sprint-day-counter">
           <span class="sprint-day-counter__num">DAY ${currentDay}</span>
           <span class="sprint-day-counter__of">/ 98</span>
         </div>
-        <span class="sprint-remaining">${remaining} days remaining</span>
+        <div class="sprint-mode-toggle">
+          <button class="sprint-mode-btn${this.sprintMode === 'today' ? ' sprint-mode-btn--active' : ''}" data-mode="today">Today</button>
+          <button class="sprint-mode-btn${this.sprintMode === 'week' ? ' sprint-mode-btn--active' : ''}" data-mode="week">Week</button>
+          <button class="sprint-mode-btn${this.sprintMode === 'map' ? ' sprint-mode-btn--active' : ''}" data-mode="map">Map</button>
+        </div>
+        <span class="sprint-remaining">${remaining} days left</span>
       </div>
       <div class="sprint-progress">
         <div class="sprint-progress__bar" style="width: ${overallPct}%"></div>
-        <span class="sprint-progress__label">${overallPct}%</span>
+        <span class="sprint-progress__label">${overallPct}% (${doneTasks}/${totalTasks} tasks)</span>
       </div>
-      <div class="sprint-phases">
-        ${SPRINT_PLAN.phases.map(p => {
-          const isActive = p.id === currentPhase.id;
-          const isPast = currentDay > p.endDay;
-          return `<span class="sprint-phase-pill${isActive ? ' sprint-phase-pill--active' : ''}${isPast ? ' sprint-phase-pill--done' : ''}"
-            style="--phase-color: ${p.color}; --phase-bg: ${p.bg}">${p.id}: ${p.name}</span>`;
+      <div class="sprint-phase-current" style="--phase-color: ${currentPhase.color}; --phase-bg: ${currentPhase.bg}">
+        <span class="sprint-phase-current__label">${currentPhase.id}: ${currentPhase.name}</span>
+        <span class="sprint-phase-current__progress">${phaseDoneTasks}/${phaseTotalTasks} tasks</span>
+        <div class="sprint-phase-current__bar"><div style="width: ${phasePct}%"></div></div>
+      </div>
+    `;
+
+    // ── Sidebar (shared across all modes) ──
+    this.renderSprintSidebar(currentDay);
+
+    // ── Main content (mode-specific) ──
+    if (this.sprintMode === 'today') {
+      this.refreshSprintToday(currentDay);
+    } else if (this.sprintMode === 'week') {
+      this.refreshSprintWeek(currentDay);
+    } else {
+      this.refreshSprintMap(currentDay);
+    }
+  }
+
+  // ── Sidebar: Goals + Deliverables + Milestones + Streak ──
+  renderSprintSidebar(currentDay) {
+    const streak = this.getStreak();
+    const sidebar = document.getElementById('sprint-sidebar');
+    sidebar.innerHTML = `
+      <div class="sprint-sidebar__section">
+        <h4 class="sprint-sidebar__title">Goals</h4>
+        ${Object.entries(SPRINT_PLAN.goals).map(([key, g]) => {
+          const vals = this.sprintGoalValues[key] || [];
+          const current = vals.length ? vals[vals.length - 1].value : g.start;
+          const pct = Math.min(100, Math.round(((current - g.start) / (g.target - g.start)) * 100));
+          return `
+            <div class="sprint-goal">
+              <div class="sprint-goal__header">
+                <span class="sprint-goal__icon">${g.icon}</span>
+                <span class="sprint-goal__label">${g.label}</span>
+                <button class="sprint-goal__edit-btn" data-goal="${key}" title="Update">\u270E</button>
+              </div>
+              <div class="sprint-goal__nums">
+                <span class="sprint-goal__current">${current}</span>
+                <span class="sprint-goal__target">/ ${g.target}</span>
+                ${this.renderSparkline(vals, g.target)}
+              </div>
+              <div class="sprint-goal__bar">
+                <div class="sprint-goal__fill" style="width: ${Math.max(0, pct)}%"></div>
+              </div>
+              <div class="sprint-goal__input" id="goal-input-${key}" style="display:none">
+                <input type="number" id="goal-val-${key}" placeholder="Current value" min="0">
+                <button class="sprint-goal__save-btn" data-goal="${key}">Save</button>
+              </div>
+            </div>
+          `;
         }).join('')}
       </div>
-    `;
 
-    // ── Week Nav ──
-    const week = this.getWeekTasks(this.sprintWeekNum);
-    const weekPhase = week ? this.getSprintPhase(week.days.mon?.dayNum || 1) : currentPhase;
-    document.getElementById('sprint-week-nav').innerHTML = `
-      <button class="sprint-nav-btn" data-dir="-1" ${this.sprintWeekNum <= 1 ? 'disabled' : ''}>\u2190</button>
-      <span class="sprint-week-label">Week ${this.sprintWeekNum} \u2014 ${weekPhase.name}</span>
-      <button class="sprint-nav-btn" data-dir="1" ${this.sprintWeekNum >= 14 ? 'disabled' : ''}>\u2192</button>
-      <button class="sprint-nav-today btn-admin">Today</button>
-    `;
+      <div class="sprint-sidebar__section">
+        <h4 class="sprint-sidebar__title">Deliverables</h4>
+        ${SPRINT_PLAN.deliverables.map(d => {
+          const prog = this.calculateDeliverableProgress(d.id);
+          const phase = SPRINT_PLAN.phases.find(p => p.id === d.phase);
+          return `
+            <div class="sprint-sdeliv">
+              <div class="sprint-sdeliv__row">
+                <span class="sprint-sdeliv__name">#${d.id} ${d.name}</span>
+                <span class="sprint-sdeliv__pct">${prog.pct}%</span>
+              </div>
+              <div class="sprint-sdeliv__bar">
+                <div class="sprint-sdeliv__fill" style="width: ${prog.pct}%; background: ${phase.color}"></div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
 
-    // ── Week Grid ──
+      <div class="sprint-sidebar__section">
+        <h4 class="sprint-sidebar__title">Milestones</h4>
+        <div class="sprint-smilestones">
+          ${SPRINT_PLAN.milestones.map(m => {
+            const isDone = currentDay >= m.day;
+            const isCurrent = !isDone && currentDay >= m.day - 7;
+            return `
+              <div class="sprint-sm${isDone ? ' sprint-sm--done' : ''}${isCurrent ? ' sprint-sm--current' : ''}">
+                <span class="sprint-sm__dot"></span>
+                <span class="sprint-sm__label">${isDone ? '\u2713' : `D${m.day}`} ${m.label}</span>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+
+      <div class="sprint-sidebar__section sprint-streak">
+        <span class="sprint-streak__fire">${streak > 0 ? '\ud83d\udd25' : '\u26aa'}</span>
+        <span class="sprint-streak__num">${streak}</span>
+        <span class="sprint-streak__label">day streak</span>
+      </div>
+    `;
+  }
+
+  // ── TODAY VIEW ──
+  refreshSprintToday(currentDay) {
+    const main = document.getElementById('sprint-main');
+    const todayData = this.getTodayTasks();
+    const currentPhase = this.getSprintPhase(currentDay);
+    const dayContext = SPRINT_DAY_CONTEXT?.[currentDay] || {};
+    const assistantMsg = SPRINT_ASSISTANT_MESSAGES?.[currentDay] || '';
+    const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const dateObj = new Date(SPRINT_PLAN.startDate);
+    dateObj.setDate(dateObj.getDate() + currentDay - 1);
+    const dayName = dayNames[dateObj.getDay()];
+    const dateStr = dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
+
+    // Count done for today
+    const todayDone = todayData.tasks.filter(t => this.sprintChecks[t.key]).length;
+    const todayTotal = todayData.tasks.length;
+    const todayAllDone = todayTotal > 0 && todayDone === todayTotal;
+
+    // Determine primary deliverable for today
+    const delivCounts = {};
+    todayData.tasks.forEach(t => { delivCounts[t.deliverable] = (delivCounts[t.deliverable] || 0) + 1; });
+    const primaryDelivId = Object.entries(delivCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
+    const primaryDeliv = SPRINT_PLAN.deliverables.find(d => d.id === parseInt(primaryDelivId));
+
+    // Check for missed tasks from previous days
+    let missedCount = 0;
     const dayKeys = ['mon','tue','wed','thu','fri','sat'];
-    const dayLabels = ['Mon','Tue','Wed','Thu','Fri','Sat'];
-    const grid = document.getElementById('sprint-week-grid');
+    SPRINT_PLAN.weeks.forEach(week => {
+      dayKeys.forEach(dk => {
+        const day = week.days[dk];
+        if (!day || day.dayNum >= currentDay) return;
+        day.tasks.forEach((t, idx) => {
+          if (!this.sprintChecks[this.getTaskKey(week.weekNum, dk, idx)]) missedCount++;
+        });
+      });
+    });
+    const missedBanner = missedCount > 0 ? `
+      <div class="sprint-catchup">
+        <span class="sprint-catchup__icon">\u26a0</span>
+        <span class="sprint-catchup__text">${missedCount} task${missedCount !== 1 ? 's' : ''} from previous days still open</span>
+        <button class="sprint-catchup__btn" data-mode="week">View in Week</button>
+      </div>
+    ` : '';
 
-    if (!week) {
-      grid.innerHTML = '<p class="sprint-empty">No data for this week</p>';
+    // Sunday handling
+    if (todayData.dayKey === 'sun') {
+      main.innerHTML = `
+        <div class="sprint-today">
+          ${missedBanner}
+          ${assistantMsg ? `<div class="sprint-assistant"><div class="sprint-assistant__label">Advisor</div><p class="sprint-assistant__text">${assistantMsg}</p></div>` : ''}
+          <div class="sprint-today-header">
+            <h2 class="sprint-today-title">${dayName}, ${dateStr}</h2>
+            <p class="sprint-today-summary">${todayData.sundayNote || 'Rest day'}</p>
+          </div>
+          <div class="sprint-today-rest">
+            <p>Light day. Review your progress, catch up on anything from the week, or rest.</p>
+          </div>
+        </div>
+      `;
       return;
     }
 
-    grid.innerHTML = dayKeys.map((dk, i) => {
+    main.innerHTML = `
+      <div class="sprint-today">
+        ${missedBanner}
+        ${assistantMsg ? `<div class="sprint-assistant"><div class="sprint-assistant__label">Advisor</div><p class="sprint-assistant__text">${assistantMsg}</p></div>` : ''}
+
+        <div class="sprint-today-header${todayAllDone ? ' sprint-today-header--done' : ''}">
+          <h2 class="sprint-today-title">${dayName}, ${dateStr}</h2>
+          <p class="sprint-today-theme">${dayContext.theme || currentPhase.name}</p>
+          <div class="sprint-today-meta">
+            <span>${todayTotal} task${todayTotal !== 1 ? 's' : ''}</span>
+            ${dayContext.totalEstimate ? `<span>\u00b7 ~${dayContext.totalEstimate}</span>` : ''}
+            ${primaryDeliv ? `<span>\u00b7 Builds <strong>#${primaryDeliv.id} ${primaryDeliv.name}</strong></span>` : ''}
+          </div>
+          ${todayAllDone ? '<div class="sprint-today-done-badge">\u2713 All tasks complete</div>' : ''}
+        </div>
+
+        <div class="sprint-today-tasks">
+          ${todayData.tasks.map((t, idx) => {
+            const checked = this.sprintChecks[t.key];
+            const isExpanded = this.sprintExpandedTask === t.key;
+            const detail = SPRINT_TASK_DETAILS?.[t.key];
+            const deliv = SPRINT_PLAN.deliverables.find(d => d.id === t.deliverable);
+            const phase = this.getSprintPhase(currentDay);
+
+            return `
+              <div class="sprint-tcard${checked ? ' sprint-tcard--done' : ''}${isExpanded ? ' sprint-tcard--expanded' : ''}">
+                <div class="sprint-tcard__header" data-task-key="${t.key}">
+                  <input type="checkbox" class="sprint-tcard__check" data-key="${t.key}" ${checked ? 'checked' : ''}>
+                  <div class="sprint-tcard__info">
+                    <span class="sprint-tcard__title">${t.text}</span>
+                    ${detail?.why ? `<span class="sprint-tcard__why-preview">${detail.why.split('.')[0]}.</span>` : ''}
+                  </div>
+                  <div class="sprint-tcard__meta">
+                    ${detail?.estimate ? `<span class="sprint-tcard__estimate">${detail.estimate}</span>` : ''}
+                    ${deliv ? `<span class="sprint-tcard__tag" style="--phase-color: ${phase.color}">#${deliv.id}</span>` : ''}
+                    <span class="sprint-tcard__chevron">${isExpanded ? '\u25B2' : '\u25BC'}</span>
+                  </div>
+                </div>
+                ${isExpanded && detail ? `
+                  <div class="sprint-tcard__detail">
+                    <div class="sprint-tcard__section">
+                      <h4 class="sprint-tcard__section-title">Why this matters</h4>
+                      <p class="sprint-tcard__section-text">${detail.why}</p>
+                      ${detail.buildsToward ? `<div class="sprint-tcard__builds"><strong>Builds toward:</strong> ${detail.buildsToward.join(' \u2192 ')}</div>` : ''}
+                      ${detail.unlocks ? `<div class="sprint-tcard__unlocks"><strong>Unlocks:</strong> ${detail.unlocks.join(', ')}</div>` : ''}
+                    </div>
+                    <div class="sprint-tcard__section">
+                      <h4 class="sprint-tcard__section-title">Steps</h4>
+                      <div class="sprint-tcard__steps">
+                        ${(detail.steps || []).map((step, si) => {
+                          const stepKey = `step-${t.key}-${si}`;
+                          const stepDone = this.sprintStepChecks[stepKey];
+                          return `
+                            <label class="sprint-step${stepDone ? ' sprint-step--done' : ''}">
+                              <input type="checkbox" class="sprint-step__check" data-step-key="${stepKey}" ${stepDone ? 'checked' : ''}>
+                              <span class="sprint-step__text">${si + 1}. ${step}</span>
+                            </label>
+                          `;
+                        }).join('')}
+                      </div>
+                    </div>
+                    <div class="sprint-tcard__section">
+                      <h4 class="sprint-tcard__section-title">Expected result</h4>
+                      <p class="sprint-tcard__section-text sprint-tcard__result">${detail.result || ''}</p>
+                    </div>
+                    ${detail.resources && detail.resources.length ? `
+                      <div class="sprint-tcard__section">
+                        <h4 class="sprint-tcard__section-title">Resources</h4>
+                        <div class="sprint-tcard__resources">
+                          ${detail.resources.map(r => {
+                            const icon = r.type === 'video' ? '\ud83c\udfa5' : r.type === 'doc' ? '\ud83d\udcc4' : r.type === 'file' ? '\ud83d\udcc1' : '\ud83d\udd17';
+                            return r.url
+                              ? `<a class="sprint-tcard__resource sprint-tcard__resource--link" href="${r.url}" target="_blank" rel="noopener">${icon} ${r.label}</a>`
+                              : `<span class="sprint-tcard__resource">${icon} ${r.label}</span>`;
+                          }).join('')}
+                        </div>
+                      </div>
+                    ` : ''}
+                    ${detail.framework ? `<div class="sprint-tcard__framework">Framework: ${detail.framework}</div>` : ''}
+                    ${!checked ? `<button class="sprint-tcard__complete-btn" data-key="${t.key}">\u2713 Mark Task Complete</button>` : ''}
+                  </div>
+                ` : ''}
+              </div>
+            `;
+          }).join('')}
+        </div>
+
+        <div class="sprint-scout" id="sprint-scout">
+          <div class="sprint-scout__header">
+            <h4 class="sprint-sidebar__title">Scout Briefing</h4>
+            <span class="sprint-scout__hint">Run <code>/scout</code> in Claude Code for today's intelligence</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Celebration: green glow + progress animation when all done
+    if (todayAllDone) {
+      const header = document.querySelector('.sprint-today-header--done');
+      if (header && !header.dataset.celebrated) {
+        header.dataset.celebrated = 'true';
+        // Subtle glow animation
+        header.style.transition = 'box-shadow 0.6s ease';
+        setTimeout(() => { header.style.boxShadow = '0 0 20px rgba(46,125,50,0.3)'; }, 100);
+      }
+    }
+  }
+
+  // ── WEEK VIEW (existing grid, preserved) ──
+  refreshSprintWeek(currentDay) {
+    const main = document.getElementById('sprint-main');
+    const week = this.getWeekTasks(this.sprintWeekNum);
+    const weekPhase = week ? this.getSprintPhase(week.days.mon?.dayNum || 1) : this.getSprintPhase(currentDay);
+    const dayKeys = ['mon','tue','wed','thu','fri','sat'];
+    const dayLabels = ['Mon','Tue','Wed','Thu','Fri','Sat'];
+
+    let weekNavHtml = `
+      <div class="sprint-week-nav">
+        <button class="sprint-nav-btn" data-dir="-1" ${this.sprintWeekNum <= 1 ? 'disabled' : ''}>\u2190</button>
+        <span class="sprint-week-label">Week ${this.sprintWeekNum} \u2014 ${weekPhase.name}</span>
+        <button class="sprint-nav-btn" data-dir="1" ${this.sprintWeekNum >= 14 ? 'disabled' : ''}>\u2192</button>
+        <button class="sprint-nav-today btn-admin">Today</button>
+      </div>
+    `;
+
+    if (!week) {
+      main.innerHTML = weekNavHtml + '<p class="sprint-empty">No data for this week</p>';
+      return;
+    }
+
+    const gridHtml = dayKeys.map((dk, i) => {
       const day = week.days[dk];
       if (!day) return `<div class="sprint-day sprint-day--empty"><div class="sprint-day__header"><span class="sprint-day__name">${dayLabels[i]}</span></div><p class="sprint-day__note">Rest day</p></div>`;
 
       const isToday = day.dayNum === currentDay;
       const isPast = day.dayNum < currentDay;
       const isFuture = day.dayNum > currentDay;
-
-      // Gather tasks (built-in + custom)
       const allTasks = day.tasks.map((t, idx) => ({
-        ...t,
-        key: this.getTaskKey(week.weekNum, dk, idx),
-        isCustom: false,
+        ...t, key: this.getTaskKey(week.weekNum, dk, idx), isCustom: false,
       }));
       const customs = this.sprintCustomTasks[`w${week.weekNum}-${dk}`] || [];
       customs.forEach((ct, ci) => {
-        allTasks.push({
-          ...ct,
-          key: `w${week.weekNum}-${dk}-c${ci}`,
-          isCustom: true,
-          customIdx: ci,
-        });
+        allTasks.push({ ...ct, key: `w${week.weekNum}-${dk}-c${ci}`, isCustom: true, customIdx: ci });
       });
-
       const doneCount = allTasks.filter(t => this.sprintChecks[t.key]).length;
       const totalCount = allTasks.length;
       const allDone = totalCount > 0 && doneCount === totalCount;
@@ -1249,88 +1645,99 @@ export class AdminPanel {
       `;
     }).join('');
 
-    // Store panel reference for custom task deletion
-    document.querySelector('[data-tab-content="sprint"]').__panel = this;
-
-    // ── Sunday note ──
-    const sundayEl = document.getElementById('sprint-sunday');
+    // Sunday
+    let sundayHtml = '';
     if (week.sunday) {
       const isSundayToday = week.sunday.dayNum === currentDay;
-      sundayEl.innerHTML = `
-        <div class="sprint-sunday__card${isSundayToday ? ' sprint-sunday--today' : ''}">
-          <span class="sprint-sunday__label">Sun \u2014 Day ${week.sunday.dayNum}</span>
-          <span class="sprint-sunday__note">${week.sunday.note}</span>
+      sundayHtml = `<div class="sprint-sunday__card${isSundayToday ? ' sprint-sunday--today' : ''}">
+        <span class="sprint-sunday__label">Sun \u2014 Day ${week.sunday.dayNum}</span>
+        <span class="sprint-sunday__note">${week.sunday.note}</span>
+      </div>`;
+    }
+
+    main.innerHTML = `
+      ${weekNavHtml}
+      <div class="sprint-week">${gridHtml}</div>
+      ${sundayHtml}
+      <div class="sprint-add-task" id="sprint-add-task" style="display:none">
+        <input type="text" id="sprint-new-task" placeholder="New task...">
+        <select id="sprint-new-deliv">
+          ${SPRINT_PLAN.deliverables.map(d => `<option value="${d.id}">#${d.id} ${d.name}</option>`).join('')}
+        </select>
+        <button id="sprint-add-btn" class="btn-admin" onclick="document.querySelector('[data-tab-content=sprint]').__panel.addSprintTask()">Add</button>
+        <button id="sprint-add-cancel" class="btn-cancel" onclick="this.parentElement.style.display='none'">Cancel</button>
+      </div>
+    `;
+    document.querySelector('[data-tab-content="sprint"]').__panel = this;
+  }
+
+  // ── MAP VIEW (Brand Building Roadmap) ──
+  refreshSprintMap(currentDay) {
+    const main = document.getElementById('sprint-main');
+    const delivs = SPRINT_PLAN.deliverables;
+
+    // Build skill tree nodes with progress
+    const nodes = delivs.map(d => {
+      const prog = this.calculateDeliverableProgress(d.id);
+      const phase = SPRINT_PLAN.phases.find(p => p.id === d.phase);
+      return { ...d, ...prog, phase, phaseObj: phase };
+    });
+
+    const node = (n) => {
+      const isActive = currentDay >= n.phaseObj.startDay && currentDay <= n.phaseObj.endDay;
+      return `
+        <div class="sprint-map__node${n.pct === 100 ? ' sprint-map__node--done' : ''}${isActive ? ' sprint-map__node--active' : ''}" style="--node-color: ${n.phaseObj.color}">
+          <span class="sprint-map__node-id">#${n.id}</span>
+          <span class="sprint-map__node-name">${n.name}</span>
+          <span class="sprint-map__node-tagline">${n.tagline}</span>
+          <div class="sprint-map__node-bar"><div style="width:${n.pct}%;background:${n.phaseObj.color}"></div></div>
+          <span class="sprint-map__node-pct">${n.pct}%</span>
         </div>
       `;
-    } else {
-      sundayEl.innerHTML = '';
-    }
+    };
 
-    // ── Deliverables ──
-    document.getElementById('sprint-deliverables').innerHTML = `
-      <h3 class="sprint-section-title">Deliverables</h3>
-      <div class="sprint-deliverables__grid">
-        ${SPRINT_PLAN.deliverables.map(d => {
-          const prog = this.calculateDeliverableProgress(d.id);
-          const phase = SPRINT_PLAN.phases.find(p => p.id === d.phase);
-          return `
-            <div class="sprint-deliv">
-              <div class="sprint-deliv__header">
-                <span class="sprint-deliv__name">#${d.id} ${d.name}</span>
-                <span class="sprint-deliv__phase" style="--phase-color: ${phase.color}; --phase-bg: ${phase.bg}">Phase ${d.phase}</span>
-              </div>
-              <div class="sprint-deliv__bar">
-                <div class="sprint-deliv__fill" style="width: ${prog.pct}%; background: ${phase.color}"></div>
-              </div>
-              <span class="sprint-deliv__pct">${prog.pct}% (${prog.done}/${prog.total})</span>
-            </div>
-          `;
-        }).join('')}
+    const byId = (...ids) => nodes.filter(n => ids.includes(n.id));
+
+    main.innerHTML = `
+      <div class="sprint-map">
+        <div class="sprint-map__goal">
+          <div class="sprint-map__goal-node">
+            <strong>24/7 Content System</strong>
+            <span>Works while you sleep</span>
+          </div>
+        </div>
+
+        <div class="sprint-map__line"></div>
+        <div class="sprint-map__phase-label" style="color: var(--sprint-phase-d)">Phase D \u2014 YouTube + Scale <span class="sprint-map__phase-days">Days 50\u201398</span></div>
+        <div class="sprint-map__tier">
+          ${byId(6).map(node).join('')}
+        </div>
+
+        <div class="sprint-map__line"></div>
+        <div class="sprint-map__phase-label" style="color: var(--sprint-phase-c)">Phase C \u2014 Automation <span class="sprint-map__phase-days">Days 36\u201349</span></div>
+        <div class="sprint-map__tier">
+          ${byId(7).map(node).join('')}
+        </div>
+
+        <div class="sprint-map__line"></div>
+        <div class="sprint-map__phase-label" style="color: var(--sprint-phase-b)">Phase B \u2014 Content Engine <span class="sprint-map__phase-days">Days 15\u201335</span></div>
+        <div class="sprint-map__tier">
+          ${byId(5, 4).map(node).join('')}
+        </div>
+        <div class="sprint-map__line"></div>
+        <div class="sprint-map__tier">
+          ${byId(3, 2).map(node).join('')}
+        </div>
+
+        <div class="sprint-map__line"></div>
+        <div class="sprint-map__phase-label" style="color: var(--sprint-phase-a)">Phase A \u2014 Foundation <span class="sprint-map__phase-days">Days 1\u201314</span></div>
+        <div class="sprint-map__tier">
+          ${byId(8, 1).map(node).join('')}
+        </div>
+
+        <div class="sprint-map__start">\u25B2 START HERE</div>
       </div>
     `;
-
-    // ── Milestones ──
-    document.getElementById('sprint-milestones').innerHTML = `
-      <h3 class="sprint-section-title">Milestones</h3>
-      <div class="sprint-milestones__track">
-        ${SPRINT_PLAN.milestones.map(m => {
-          const isDone = currentDay >= m.day;
-          const isCurrent = !isDone && currentDay >= m.day - 7;
-          return `
-            <div class="sprint-milestone${isDone ? ' sprint-milestone--done' : ''}${isCurrent ? ' sprint-milestone--current' : ''}">
-              <span class="sprint-milestone__dot"></span>
-              <span class="sprint-milestone__day">D${m.day}</span>
-              <span class="sprint-milestone__label">${m.label}</span>
-            </div>
-          `;
-        }).join('')}
-      </div>
-    `;
-
-    // Fire confetti if a milestone was just completed
-    const milestoneToday = SPRINT_PLAN.milestones.find(m => m.day === currentDay);
-    if (milestoneToday) {
-      const weekData = this.getWeekTasks(this.sprintWeekNum);
-      if (weekData) {
-        const sunDay = weekData.sunday;
-        if (sunDay && sunDay.dayNum === currentDay) {
-          // Check if all week tasks are done
-          let allWeekDone = true;
-          const dks = ['mon','tue','wed','thu','fri','sat'];
-          dks.forEach(dk => {
-            const d = weekData.days[dk];
-            if (!d) return;
-            d.tasks.forEach((t, idx) => {
-              if (!this.sprintChecks[this.getTaskKey(weekData.weekNum, dk, idx)]) allWeekDone = false;
-            });
-          });
-          if (allWeekDone) {
-            const header = document.getElementById('sprint-header');
-            if (header) fireConfetti(header);
-          }
-        }
-      }
-    }
   }
 
   // ─── BUDGET TRACKER ───────────────────────────────────────
