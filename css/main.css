@@ -4155,122 +4155,116 @@ body.admin-mode {
   font-size: 0.65rem;
 }
 
-/* Map view (skill tree) */
-.sprint-map {
+/* Map view (deliverable cards) */
+.sprint-map-cards {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0;
-  padding: var(--sp-4) 0;
+  gap: var(--sp-5);
+  padding: var(--sp-3) 0;
 }
-.sprint-map__goal {
-  text-align: center;
-}
-.sprint-map__goal-node {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  padding: var(--sp-3) var(--sp-5);
-  background: linear-gradient(135deg, var(--color-accent) 0%, #5D4037 100%);
-  color: white;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-}
-.sprint-map__goal-node strong {
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-bold);
-}
-.sprint-map__goal-node span {
-  font-size: var(--fs-xs);
-  opacity: 0.8;
-  margin-top: 2px;
-}
-.sprint-map__line {
-  width: 2px;
-  height: 24px;
-  background: var(--color-border);
-}
-.sprint-map__tier {
-  display: flex;
-  gap: var(--sp-3);
-  flex-wrap: wrap;
-  justify-content: center;
-  padding: var(--sp-2) 0;
-}
-.sprint-map__node {
-  background: var(--color-surface);
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--sp-3);
-  min-width: 140px;
-  max-width: 200px;
-  text-align: center;
-  transition: all 0.2s ease;
-}
-.sprint-map__node--active {
-  border-color: var(--node-color);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--node-color) 20%, transparent);
-}
-.sprint-map__node--done {
-  border-color: var(--sprint-done);
-  background: #E8F5E9;
-}
-.sprint-map__node-id {
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-bold);
-  color: var(--node-color, var(--color-text-muted));
-  display: block;
-}
-.sprint-map__node-name {
+.sprint-dcard-phase__title {
   font-size: var(--fs-sm);
   font-weight: var(--fw-bold);
-  color: var(--color-text);
-  display: block;
-  margin: 2px 0 2px;
+  margin: 0 0 var(--sp-2);
 }
-.sprint-map__node-tagline {
-  font-size: 0.65rem;
-  color: var(--color-text-muted);
-  display: block;
-  margin-bottom: var(--sp-2);
-  line-height: 1.3;
-}
-.sprint-map__phase-label {
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-bold);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: var(--sp-1) 0;
-}
-.sprint-map__phase-days {
+.sprint-dcard-phase__days {
   font-weight: var(--fw-normal);
-  opacity: 0.6;
+  opacity: 0.5;
+  font-size: var(--fs-xs);
   margin-left: var(--sp-1);
 }
-.sprint-map__node-bar {
+.sprint-dcard-phase--current .sprint-dcard-phase__title {
+  position: relative;
+}
+.sprint-dcard-phase--current .sprint-dcard-phase__title::before {
+  content: '\25CF';
+  margin-right: var(--sp-1);
+  font-size: 0.5rem;
+  vertical-align: middle;
+}
+.sprint-dcard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--sp-3);
+}
+.sprint-dcard {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--card-color, var(--color-border));
+  border-radius: var(--radius-md);
+  padding: var(--sp-3) var(--sp-4);
+  transition: box-shadow 0.15s ease;
+}
+.sprint-dcard--active {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--card-color) 20%, transparent);
+}
+.sprint-dcard--done {
+  border-left-color: var(--sprint-done);
+  background: #FAFDF7;
+}
+.sprint-dcard__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.sprint-dcard__name {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+.sprint-dcard__pct {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--card-color, var(--color-text-muted));
+  font-variant-numeric: tabular-nums;
+}
+.sprint-dcard__tagline {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  margin: 2px 0 var(--sp-2);
+  line-height: 1.3;
+}
+.sprint-dcard__bar {
   height: 4px;
   background: var(--color-border);
   border-radius: 2px;
   overflow: hidden;
-  margin-bottom: 2px;
+  margin-bottom: var(--sp-1);
 }
-.sprint-map__node-bar > div {
+.sprint-dcard__bar > div {
   height: 100%;
   border-radius: 2px;
   transition: width 0.4s ease;
 }
-.sprint-map__node-pct {
-  font-size: 0.6rem;
-  color: var(--color-text-muted);
-  font-variant-numeric: tabular-nums;
-}
-.sprint-map__start {
+.sprint-dcard__stats {
   font-size: var(--fs-xs);
-  font-weight: var(--fw-bold);
   color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-top: var(--sp-2);
+  margin-bottom: var(--sp-2);
+}
+.sprint-dcard__tasks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sprint-dcard__task {
+  font-size: var(--fs-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  padding-left: var(--sp-2);
+  border-left: 2px solid var(--color-border);
+}
+.sprint-dcard__task--done {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+.sprint-dcard__task-day {
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+  margin-right: var(--sp-1);
+  font-size: 0.65rem;
 }
 
 
@@ -4321,12 +4315,7 @@ body.admin-mode {
   .sprint-tcard__header {
     padding: var(--sp-2) var(--sp-3);
   }
-  .sprint-map__tier {
-    flex-direction: column;
-    align-items: center;
-  }
-  .sprint-map__node {
-    max-width: 100%;
-    width: 100%;
+  .sprint-dcard-grid {
+    grid-template-columns: 1fr;
   }
 }

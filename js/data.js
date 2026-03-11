@@ -1372,12 +1372,12 @@ export const WEEK_DAYS = [
 
 // ─────────────────────────────────────────────────────────────
 //  SPRINT PLAN — 98-Day Sprint for EA Workspace
-//  Start: March 9, 2026 (Day 1) → End: June 14, 2026 (Day 98)
+//  Start: March 16, 2026 (Day 1) → End: June 21, 2026 (Day 98)
 // ─────────────────────────────────────────────────────────────
 
 export const SPRINT_PLAN = {
-  startDate: '2026-03-09',
-  endDate: '2026-06-14',
+  startDate: '2026-03-16',
+  endDate: '2026-06-21',
   phases: [
     { id: 'A', name: 'Foundation',       startDay: 1,  endDay: 14, color: 'var(--sprint-phase-a)', bg: 'var(--sprint-phase-a-bg)' },
     { id: 'B', name: 'Content Engine',   startDay: 15, endDay: 35, color: 'var(--sprint-phase-b)', bg: 'var(--sprint-phase-b-bg)' },

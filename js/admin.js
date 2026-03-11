@@ -2,7 +2,7 @@
  * Admin Panel — Personal dashboard (hidden behind ?admin URL param)
  * Tabs: Household | Calendar | Projects | Notes
  */
-import { WEEK_DAYS, SPRINT_PLAN } from './data.js?v=49';
+import { WEEK_DAYS, SPRINT_PLAN } from './data.js?v=50';
 import { SPRINT_TASK_DETAILS, SPRINT_DAY_CONTEXT, SPRINT_ASSISTANT_MESSAGES } from './sprint-content.js?v=2';
 
 // ─── Confetti Animation ────────────────────────────────────────
@@ -1309,8 +1309,8 @@ export class AdminPanel {
         <span class="sprint-progress__label">${overallPct}% (${doneTasks}/${totalTasks} tasks)</span>
       </div>
       <div class="sprint-phase-current" style="--phase-color: ${currentPhase.color}; --phase-bg: ${currentPhase.bg}">
-        <span class="sprint-phase-current__label">${currentPhase.id}: ${currentPhase.name}</span>
-        <span class="sprint-phase-current__progress">${phaseDoneTasks}/${phaseTotalTasks} tasks</span>
+        <span class="sprint-phase-current__label">Phase ${SPRINT_PLAN.phases.indexOf(currentPhase) + 1} of ${SPRINT_PLAN.phases.length} — ${currentPhase.name}</span>
+        <span class="sprint-phase-current__progress">${phaseDoneTasks} of ${phaseTotalTasks} tasks</span>
         <div class="sprint-phase-current__bar"><div style="width: ${phasePct}%"></div></div>
       </div>
     `;
@@ -1391,7 +1391,7 @@ export class AdminPanel {
             return `
               <div class="sprint-sm${isDone ? ' sprint-sm--done' : ''}${isCurrent ? ' sprint-sm--current' : ''}">
                 <span class="sprint-sm__dot"></span>
-                <span class="sprint-sm__label">${isDone ? '\u2713' : `D${m.day}`} ${m.label}</span>
+                <span class="sprint-sm__label">${isDone ? '\u2713' : `Day ${m.day}`} ${m.label}</span>
               </div>
             `;
           }).join('')}
@@ -1671,71 +1671,77 @@ export class AdminPanel {
     document.querySelector('[data-tab-content="sprint"]').__panel = this;
   }
 
-  // ── MAP VIEW (Brand Building Roadmap) ──
+  // ── MAP VIEW (Deliverable Cards Grid) ──
   refreshSprintMap(currentDay) {
     const main = document.getElementById('sprint-main');
     const delivs = SPRINT_PLAN.deliverables;
+    const phases = SPRINT_PLAN.phases;
 
-    // Build skill tree nodes with progress
-    const nodes = delivs.map(d => {
+    // Build cards with progress
+    const cards = delivs.map(d => {
       const prog = this.calculateDeliverableProgress(d.id);
-      const phase = SPRINT_PLAN.phases.find(p => p.id === d.phase);
-      return { ...d, ...prog, phase, phaseObj: phase };
-    });
+      const phase = phases.find(p => p.id === d.phase);
+      const isActive = currentDay >= phase.startDay && currentDay <= phase.endDay;
 
-    const node = (n) => {
-      const isActive = currentDay >= n.phaseObj.startDay && currentDay <= n.phaseObj.endDay;
+      // Friendly display name (Social Guidelines → Content & LinkedIn Strategy)
+      const displayName = d.id === 2 ? 'Content & LinkedIn Strategy' : d.name;
+
+      // Collect all tasks for this deliverable with their status
+      const tasks = [];
+      SPRINT_PLAN.weeks.forEach(week => {
+        ['mon','tue','wed','thu','fri','sat'].forEach(dk => {
+          const day = week.days[dk];
+          if (!day) return;
+          day.tasks.forEach((t, idx) => {
+            if (t.deliverable === d.id) {
+              tasks.push({
+                text: t.text,
+                done: !!this.sprintChecks[this.getTaskKey(week.weekNum, dk, idx)],
+                dayNum: day.dayNum,
+              });
+            }
+          });
+        });
+      });
+
+      // Show next 3 undone tasks or last 3 done
+      const upcoming = tasks.filter(t => !t.done).slice(0, 3);
+      const taskPreview = upcoming.length
+        ? upcoming.map(t => `<li class="sprint-dcard__task"><span class="sprint-dcard__task-day">Day ${t.dayNum}</span>${t.text}</li>`).join('')
+        : tasks.slice(-2).map(t => `<li class="sprint-dcard__task sprint-dcard__task--done">${t.text}</li>`).join('');
+
       return `
-        <div class="sprint-map__node${n.pct === 100 ? ' sprint-map__node--done' : ''}${isActive ? ' sprint-map__node--active' : ''}" style="--node-color: ${n.phaseObj.color}">
-          <span class="sprint-map__node-id">#${n.id}</span>
-          <span class="sprint-map__node-name">${n.name}</span>
-          <span class="sprint-map__node-tagline">${n.tagline}</span>
-          <div class="sprint-map__node-bar"><div style="width:${n.pct}%;background:${n.phaseObj.color}"></div></div>
-          <span class="sprint-map__node-pct">${n.pct}%</span>
+        <div class="sprint-dcard${prog.pct === 100 ? ' sprint-dcard--done' : ''}${isActive ? ' sprint-dcard--active' : ''}" style="--card-color: ${phase.color}" data-deliv-id="${d.id}">
+          <div class="sprint-dcard__head">
+            <span class="sprint-dcard__name">${displayName}</span>
+            <span class="sprint-dcard__pct">${prog.pct}%</span>
+          </div>
+          <p class="sprint-dcard__tagline">${d.tagline}</p>
+          <div class="sprint-dcard__bar"><div style="width:${prog.pct}%;background:${phase.color}"></div></div>
+          <div class="sprint-dcard__stats">${prog.done} of ${prog.total} tasks done</div>
+          <ul class="sprint-dcard__tasks">${taskPreview}</ul>
         </div>
       `;
-    };
+    });
 
-    const byId = (...ids) => nodes.filter(n => ids.includes(n.id));
+    // Group by phase
+    const phaseGroups = phases.map(p => {
+      const phaseCards = delivs
+        .filter(d => d.phase === p.id)
+        .map(d => cards[delivs.indexOf(d)]);
+      const phaseNum = phases.indexOf(p) + 1;
+      const isCurrent = currentDay >= p.startDay && currentDay <= p.endDay;
+      return `
+        <div class="sprint-dcard-phase${isCurrent ? ' sprint-dcard-phase--current' : ''}">
+          <h3 class="sprint-dcard-phase__title" style="color: ${p.color}">Phase ${phaseNum} — ${p.name} <span class="sprint-dcard-phase__days">Days ${p.startDay}–${p.endDay}</span></h3>
+          <div class="sprint-dcard-grid">${phaseCards.join('')}</div>
+        </div>
+      `;
+    });
 
     main.innerHTML = `
-      <div class="sprint-map">
-        <div class="sprint-map__goal">
-          <div class="sprint-map__goal-node">
-            <strong>24/7 Content System</strong>
-            <span>Works while you sleep</span>
-          </div>
-        </div>
-
-        <div class="sprint-map__line"></div>
-        <div class="sprint-map__phase-label" style="color: var(--sprint-phase-d)">Phase D \u2014 YouTube + Scale <span class="sprint-map__phase-days">Days 50\u201398</span></div>
-        <div class="sprint-map__tier">
-          ${byId(6).map(node).join('')}
-        </div>
-
-        <div class="sprint-map__line"></div>
-        <div class="sprint-map__phase-label" style="color: var(--sprint-phase-c)">Phase C \u2014 Automation <span class="sprint-map__phase-days">Days 36\u201349</span></div>
-        <div class="sprint-map__tier">
-          ${byId(7).map(node).join('')}
-        </div>
-
-        <div class="sprint-map__line"></div>
-        <div class="sprint-map__phase-label" style="color: var(--sprint-phase-b)">Phase B \u2014 Content Engine <span class="sprint-map__phase-days">Days 15\u201335</span></div>
-        <div class="sprint-map__tier">
-          ${byId(5, 4).map(node).join('')}
-        </div>
-        <div class="sprint-map__line"></div>
-        <div class="sprint-map__tier">
-          ${byId(3, 2).map(node).join('')}
-        </div>
-
-        <div class="sprint-map__line"></div>
-        <div class="sprint-map__phase-label" style="color: var(--sprint-phase-a)">Phase A \u2014 Foundation <span class="sprint-map__phase-days">Days 1\u201314</span></div>
-        <div class="sprint-map__tier">
-          ${byId(8, 1).map(node).join('')}
-        </div>
-
-        <div class="sprint-map__start">\u25B2 START HERE</div>
+      <div class="sprint-map-cards">
+        ${phaseGroups.join('')}
       </div>
     `;
   }
