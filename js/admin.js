@@ -2,7 +2,7 @@
  * Admin Panel — Personal dashboard (hidden behind ?admin URL param)
  * Tabs: Household | Calendar | Projects | Notes
  */
-import { WEEK_DAYS } from './data.js?v=45';
+import { WEEK_DAYS, SPRINT_PLAN } from './data.js?v=46';
 
 // ─── Confetti Animation ────────────────────────────────────────
 function fireConfetti(targetEl) {
@@ -126,6 +126,11 @@ export class AdminPanel {
     this.editingPaymentId = null;
     this._convertingBiPayment = null;
     this.hiddenBuiltIns = this.load('admin-hidden-builtins') || [];
+    // Sprint state
+    this.sprintChecks = this.load('sprint-checks') || {};
+    this.sprintWeekNum = this.getSprintWeek();
+    this.sprintCustomTasks = this.load('sprint-custom-tasks') || {};
+    this.editingSprintTask = null;
   }
 
   detectCurrentWeek() {
@@ -228,7 +233,7 @@ export class AdminPanel {
     tabBar.className = 'admin-tabs';
     tabBar.innerHTML = `
       <button class="admin-tab is-active" data-tab="calendar">Calendar</button>
-      <button class="admin-tab" data-tab="projects">Projects</button>
+      <button class="admin-tab" data-tab="sprint">Sprint</button>
       <button class="admin-tab" data-tab="household">Household</button>
       <button class="admin-tab" data-tab="notes">Notes</button>
     `;
@@ -253,7 +258,7 @@ export class AdminPanel {
     body.appendChild(householdWrapper);
 
     // Create other tab content areas
-    ['calendar', 'projects', 'notes'].forEach(id => {
+    ['calendar', 'sprint', 'notes'].forEach(id => {
       const panel = document.createElement('div');
       panel.className = `admin-panel-content admin-panel-content--${id}${id === 'calendar' ? ' is-active' : ''}`;
       panel.dataset.tabContent = id;
@@ -262,7 +267,7 @@ export class AdminPanel {
 
     // Render personal tabs
     this.renderCalendar();
-    this.renderProjects();
+    this.renderSprint();
     this.renderNotes();
 
     // Bind tab switching
@@ -977,63 +982,355 @@ export class AdminPanel {
   }
 
   // ─── PROJECTS ──────────────────────────────────────────────
-  renderProjects() {
-    const panel = document.querySelector('[data-tab-content="projects"]');
+  // ─── SPRINT ────────────────────────────────────────────────
+  getSprintDay() {
+    const start = new Date(SPRINT_PLAN.startDate);
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    start.setHours(0,0,0,0);
+    const diff = Math.floor((today - start) / 86400000) + 1;
+    return Math.max(1, Math.min(98, diff));
+  }
+
+  getSprintWeek() {
+    return Math.ceil(this.getSprintDay() / 7);
+  }
+
+  getSprintPhase(dayNum) {
+    return SPRINT_PLAN.phases.find(p => dayNum >= p.startDay && dayNum <= p.endDay) || SPRINT_PLAN.phases[0];
+  }
+
+  getSprintDateForDay(dayNum) {
+    const start = new Date(SPRINT_PLAN.startDate);
+    start.setDate(start.getDate() + dayNum - 1);
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${start.getDate()} ${months[start.getMonth()]}`;
+  }
+
+  getTaskKey(weekNum, dayKey, idx) {
+    return `w${weekNum}-${dayKey}-${idx}`;
+  }
+
+  getWeekTasks(weekNum) {
+    const week = SPRINT_PLAN.weeks.find(w => w.weekNum === weekNum);
+    if (!week) return null;
+    return week;
+  }
+
+  calculateDeliverableProgress(delivId) {
+    let total = 0, done = 0;
+    SPRINT_PLAN.weeks.forEach(week => {
+      const dayKeys = ['mon','tue','wed','thu','fri','sat'];
+      dayKeys.forEach(dk => {
+        const day = week.days[dk];
+        if (!day) return;
+        day.tasks.forEach((task, idx) => {
+          if (task.deliverable === delivId) {
+            total++;
+            if (this.sprintChecks[this.getTaskKey(week.weekNum, dk, idx)]) done++;
+          }
+        });
+        // Count custom tasks for this deliverable
+        const customs = this.sprintCustomTasks[`w${week.weekNum}-${dk}`] || [];
+        customs.forEach((ct, ci) => {
+          if (ct.deliverable === delivId) {
+            total++;
+            if (this.sprintChecks[`w${week.weekNum}-${dk}-c${ci}`]) done++;
+          }
+        });
+      });
+    });
+    return { total, done, pct: total ? Math.round((done / total) * 100) : 0 };
+  }
+
+  renderSprint() {
+    const panel = document.querySelector('[data-tab-content="sprint"]');
     panel.innerHTML = `
-      <div class="admin-page">
-        <div class="admin-page__header">
-          <h2>Projects</h2>
+      <div class="admin-page sprint-page">
+        <div class="sprint-header" id="sprint-header"></div>
+        <div class="sprint-week-nav" id="sprint-week-nav"></div>
+        <div class="sprint-week" id="sprint-week-grid"></div>
+        <div class="sprint-sunday" id="sprint-sunday"></div>
+        <div class="sprint-add-task" id="sprint-add-task" style="display:none">
+          <input type="text" id="sprint-new-task" placeholder="New task...">
+          <select id="sprint-new-deliv">
+            ${SPRINT_PLAN.deliverables.map(d => `<option value="${d.id}">#${d.id} ${d.name}</option>`).join('')}
+          </select>
+          <button id="sprint-add-btn" class="btn-admin">Add</button>
+          <button id="sprint-add-cancel" class="btn-cancel">Cancel</button>
         </div>
-
-        <!-- BUDGET TRACKER -->
-        <h3 class="projects-section-title" id="budget-form-title">\u{1F4B8} Add Payment</h3>
-        <div class="budget-add">
-          <input type="text" id="budget-payee" placeholder="What is it for?">
-          <input type="number" id="budget-amount" placeholder="Amount (S$)" min="0" step="0.01">
-          <select id="budget-day"></select>
-          <button id="budget-add-btn" class="btn-admin">Add Payment</button>
-          <button id="budget-cancel-btn" class="btn-cancel" style="display:none">Cancel</button>
-        </div>
-        <div class="budget-summary" id="budget-summary"></div>
-        <div class="budget-list" id="budget-list"></div>
-
-        <!-- TASK BOARD -->
-        <h3 class="projects-section-title" id="kanban-form-title">\u{1F4CB} Add Task</h3>
-        <div class="kanban-add">
-          <input type="text" id="kanban-title" placeholder="New task title">
-          <input type="text" id="kanban-desc" placeholder="Description (optional)">
-          <button id="kanban-add-btn" class="btn-admin">Add Task</button>
-          <button id="kanban-cancel-btn" class="btn-cancel" style="display:none">Cancel</button>
-        </div>
-        <div class="kanban" id="kanban-board">
-          <div class="kanban-col" data-status="todo">
-            <h3 class="kanban-col__title">To Do</h3>
-            <div class="kanban-col__items" id="kanban-todo"></div>
-          </div>
-          <div class="kanban-col" data-status="progress">
-            <h3 class="kanban-col__title">In Progress</h3>
-            <div class="kanban-col__items" id="kanban-progress"></div>
-          </div>
-          <div class="kanban-col" data-status="done">
-            <h3 class="kanban-col__title kanban-col__title--done">Done \u{1F389}</h3>
-            <div class="kanban-col__items" id="kanban-done"></div>
-          </div>
+        <div class="sprint-bottom">
+          <div class="sprint-deliverables" id="sprint-deliverables"></div>
+          <div class="sprint-milestones" id="sprint-milestones"></div>
         </div>
       </div>
     `;
 
-    // Budget tracker bindings
-    this.populateBudgetDaySelector();
-    panel.querySelector('#budget-add-btn').addEventListener('click', () => this.addPayment());
-    panel.querySelector('#budget-cancel-btn').addEventListener('click', () => this.cancelEditPayment());
-    panel.querySelector('#budget-payee').addEventListener('keydown', (e) => { if (e.key === 'Enter') this.addPayment(); });
-    this.refreshBudget();
+    // Week nav bindings
+    panel.addEventListener('click', (e) => {
+      const navBtn = e.target.closest('.sprint-nav-btn');
+      if (navBtn) {
+        const dir = parseInt(navBtn.dataset.dir);
+        this.sprintWeekNum = Math.max(1, Math.min(14, this.sprintWeekNum + dir));
+        this.refreshSprint();
+        return;
+      }
+      if (e.target.closest('.sprint-nav-today')) {
+        this.sprintWeekNum = this.getSprintWeek();
+        this.refreshSprint();
+        return;
+      }
+      // Day add button
+      const addBtn = e.target.closest('.sprint-day__add');
+      if (addBtn) {
+        this._addingTaskDay = addBtn.dataset.day;
+        this._addingTaskWeek = parseInt(addBtn.dataset.week);
+        const addForm = document.getElementById('sprint-add-task');
+        addForm.style.display = 'flex';
+        document.getElementById('sprint-new-task').focus();
+        return;
+      }
+    });
 
-    // Kanban bindings
-    panel.querySelector('#kanban-add-btn').addEventListener('click', () => this.addTask());
-    panel.querySelector('#kanban-cancel-btn').addEventListener('click', () => this.cancelEditTask());
-    panel.querySelector('#kanban-title').addEventListener('keydown', (e) => { if (e.key === 'Enter') this.addTask(); });
-    this.refreshProjects();
+    // Checkbox binding (delegated)
+    panel.addEventListener('change', (e) => {
+      const cb = e.target.closest('.sprint-task__check');
+      if (!cb) return;
+      const key = cb.dataset.key;
+      this.sprintChecks[key] = cb.checked;
+      this.save('sprint-checks', this.sprintChecks);
+      this.refreshSprint();
+    });
+
+    // Add task form
+    document.getElementById('sprint-add-btn')?.addEventListener('click', () => this.addSprintTask());
+    document.getElementById('sprint-add-cancel')?.addEventListener('click', () => {
+      document.getElementById('sprint-add-task').style.display = 'none';
+      document.getElementById('sprint-new-task').value = '';
+    });
+    document.getElementById('sprint-new-task')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') this.addSprintTask();
+    });
+
+    this.refreshSprint();
+  }
+
+  addSprintTask() {
+    const text = document.getElementById('sprint-new-task').value.trim();
+    const deliverable = parseInt(document.getElementById('sprint-new-deliv').value);
+    if (!text) return;
+    const key = `w${this._addingTaskWeek}-${this._addingTaskDay}`;
+    if (!this.sprintCustomTasks[key]) this.sprintCustomTasks[key] = [];
+    this.sprintCustomTasks[key].push({ text, deliverable });
+    this.save('sprint-custom-tasks', this.sprintCustomTasks);
+    document.getElementById('sprint-new-task').value = '';
+    document.getElementById('sprint-add-task').style.display = 'none';
+    this.refreshSprint();
+  }
+
+  deleteSprintCustomTask(weekNum, dayKey, customIdx) {
+    const key = `w${weekNum}-${dayKey}`;
+    const arr = this.sprintCustomTasks[key];
+    if (!arr) return;
+    arr.splice(customIdx, 1);
+    // Clean up check state
+    delete this.sprintChecks[`w${weekNum}-${dayKey}-c${customIdx}`];
+    this.save('sprint-custom-tasks', this.sprintCustomTasks);
+    this.save('sprint-checks', this.sprintChecks);
+    this.refreshSprint();
+  }
+
+  refreshSprint() {
+    const currentDay = this.getSprintDay();
+    const currentPhase = this.getSprintPhase(currentDay);
+    const remaining = Math.max(0, 98 - currentDay);
+    const overallPct = Math.round((currentDay / 98) * 100);
+
+    // Phase progress
+    const phasePct = Math.round(((currentDay - currentPhase.startDay) / (currentPhase.endDay - currentPhase.startDay + 1)) * 100);
+
+    // ── Header ──
+    document.getElementById('sprint-header').innerHTML = `
+      <div class="sprint-header__top">
+        <div class="sprint-day-counter">
+          <span class="sprint-day-counter__num">DAY ${currentDay}</span>
+          <span class="sprint-day-counter__of">/ 98</span>
+        </div>
+        <span class="sprint-remaining">${remaining} days remaining</span>
+      </div>
+      <div class="sprint-progress">
+        <div class="sprint-progress__bar" style="width: ${overallPct}%"></div>
+        <span class="sprint-progress__label">${overallPct}%</span>
+      </div>
+      <div class="sprint-phases">
+        ${SPRINT_PLAN.phases.map(p => {
+          const isActive = p.id === currentPhase.id;
+          const isPast = currentDay > p.endDay;
+          return `<span class="sprint-phase-pill${isActive ? ' sprint-phase-pill--active' : ''}${isPast ? ' sprint-phase-pill--done' : ''}"
+            style="--phase-color: ${p.color}; --phase-bg: ${p.bg}">${p.id}: ${p.name}</span>`;
+        }).join('')}
+      </div>
+    `;
+
+    // ── Week Nav ──
+    const week = this.getWeekTasks(this.sprintWeekNum);
+    const weekPhase = week ? this.getSprintPhase(week.days.mon?.dayNum || 1) : currentPhase;
+    document.getElementById('sprint-week-nav').innerHTML = `
+      <button class="sprint-nav-btn" data-dir="-1" ${this.sprintWeekNum <= 1 ? 'disabled' : ''}>\u2190</button>
+      <span class="sprint-week-label">Week ${this.sprintWeekNum} \u2014 ${weekPhase.name}</span>
+      <button class="sprint-nav-btn" data-dir="1" ${this.sprintWeekNum >= 14 ? 'disabled' : ''}>\u2192</button>
+      <button class="sprint-nav-today btn-admin">Today</button>
+    `;
+
+    // ── Week Grid ──
+    const dayKeys = ['mon','tue','wed','thu','fri','sat'];
+    const dayLabels = ['Mon','Tue','Wed','Thu','Fri','Sat'];
+    const grid = document.getElementById('sprint-week-grid');
+
+    if (!week) {
+      grid.innerHTML = '<p class="sprint-empty">No data for this week</p>';
+      return;
+    }
+
+    grid.innerHTML = dayKeys.map((dk, i) => {
+      const day = week.days[dk];
+      if (!day) return `<div class="sprint-day sprint-day--empty"><div class="sprint-day__header"><span class="sprint-day__name">${dayLabels[i]}</span></div><p class="sprint-day__note">Rest day</p></div>`;
+
+      const isToday = day.dayNum === currentDay;
+      const isPast = day.dayNum < currentDay;
+      const isFuture = day.dayNum > currentDay;
+
+      // Gather tasks (built-in + custom)
+      const allTasks = day.tasks.map((t, idx) => ({
+        ...t,
+        key: this.getTaskKey(week.weekNum, dk, idx),
+        isCustom: false,
+      }));
+      const customs = this.sprintCustomTasks[`w${week.weekNum}-${dk}`] || [];
+      customs.forEach((ct, ci) => {
+        allTasks.push({
+          ...ct,
+          key: `w${week.weekNum}-${dk}-c${ci}`,
+          isCustom: true,
+          customIdx: ci,
+        });
+      });
+
+      const doneCount = allTasks.filter(t => this.sprintChecks[t.key]).length;
+      const totalCount = allTasks.length;
+      const allDone = totalCount > 0 && doneCount === totalCount;
+
+      return `
+        <div class="sprint-day${isToday ? ' sprint-day--today' : ''}${isPast ? ' sprint-day--past' : ''}${isFuture ? ' sprint-day--future' : ''}${allDone ? ' sprint-day--complete' : ''}">
+          <div class="sprint-day__header">
+            <span class="sprint-day__name">${dayLabels[i]}</span>
+            <span class="sprint-day__num">Day ${day.dayNum}</span>
+            <span class="sprint-day__date">${this.getSprintDateForDay(day.dayNum)}</span>
+          </div>
+          <div class="sprint-day__tasks">
+            ${allTasks.map(t => {
+              const checked = this.sprintChecks[t.key];
+              const deliv = SPRINT_PLAN.deliverables.find(d => d.id === t.deliverable);
+              return `
+                <label class="sprint-task${checked ? ' sprint-task--done' : ''}">
+                  <input type="checkbox" class="sprint-task__check" data-key="${t.key}" ${checked ? 'checked' : ''}>
+                  <span class="sprint-task__text">${t.text}</span>
+                  ${deliv ? `<span class="sprint-task__tag" style="--phase-color: ${this.getSprintPhase(day.dayNum).color}">#${deliv.id}</span>` : ''}
+                  ${t.isCustom ? `<button class="sprint-task__del" onclick="event.preventDefault();event.stopPropagation();document.querySelector('[data-tab-content=sprint]').__panel.deleteSprintCustomTask(${week.weekNum},'${dk}',${t.customIdx})">&times;</button>` : ''}
+                </label>
+              `;
+            }).join('')}
+          </div>
+          <div class="sprint-day__footer">
+            <span class="sprint-day__count${allDone ? ' sprint-day__count--done' : ''}">${doneCount}/${totalCount}</span>
+            <button class="sprint-day__add" data-day="${dk}" data-week="${week.weekNum}">+</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Store panel reference for custom task deletion
+    document.querySelector('[data-tab-content="sprint"]').__panel = this;
+
+    // ── Sunday note ──
+    const sundayEl = document.getElementById('sprint-sunday');
+    if (week.sunday) {
+      const isSundayToday = week.sunday.dayNum === currentDay;
+      sundayEl.innerHTML = `
+        <div class="sprint-sunday__card${isSundayToday ? ' sprint-sunday--today' : ''}">
+          <span class="sprint-sunday__label">Sun \u2014 Day ${week.sunday.dayNum}</span>
+          <span class="sprint-sunday__note">${week.sunday.note}</span>
+        </div>
+      `;
+    } else {
+      sundayEl.innerHTML = '';
+    }
+
+    // ── Deliverables ──
+    document.getElementById('sprint-deliverables').innerHTML = `
+      <h3 class="sprint-section-title">Deliverables</h3>
+      <div class="sprint-deliverables__grid">
+        ${SPRINT_PLAN.deliverables.map(d => {
+          const prog = this.calculateDeliverableProgress(d.id);
+          const phase = SPRINT_PLAN.phases.find(p => p.id === d.phase);
+          return `
+            <div class="sprint-deliv">
+              <div class="sprint-deliv__header">
+                <span class="sprint-deliv__name">#${d.id} ${d.name}</span>
+                <span class="sprint-deliv__phase" style="--phase-color: ${phase.color}; --phase-bg: ${phase.bg}">Phase ${d.phase}</span>
+              </div>
+              <div class="sprint-deliv__bar">
+                <div class="sprint-deliv__fill" style="width: ${prog.pct}%; background: ${phase.color}"></div>
+              </div>
+              <span class="sprint-deliv__pct">${prog.pct}% (${prog.done}/${prog.total})</span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+
+    // ── Milestones ──
+    document.getElementById('sprint-milestones').innerHTML = `
+      <h3 class="sprint-section-title">Milestones</h3>
+      <div class="sprint-milestones__track">
+        ${SPRINT_PLAN.milestones.map(m => {
+          const isDone = currentDay >= m.day;
+          const isCurrent = !isDone && currentDay >= m.day - 7;
+          return `
+            <div class="sprint-milestone${isDone ? ' sprint-milestone--done' : ''}${isCurrent ? ' sprint-milestone--current' : ''}">
+              <span class="sprint-milestone__dot"></span>
+              <span class="sprint-milestone__day">D${m.day}</span>
+              <span class="sprint-milestone__label">${m.label}</span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+
+    // Fire confetti if a milestone was just completed
+    const milestoneToday = SPRINT_PLAN.milestones.find(m => m.day === currentDay);
+    if (milestoneToday) {
+      const weekData = this.getWeekTasks(this.sprintWeekNum);
+      if (weekData) {
+        const sunDay = weekData.sunday;
+        if (sunDay && sunDay.dayNum === currentDay) {
+          // Check if all week tasks are done
+          let allWeekDone = true;
+          const dks = ['mon','tue','wed','thu','fri','sat'];
+          dks.forEach(dk => {
+            const d = weekData.days[dk];
+            if (!d) return;
+            d.tasks.forEach((t, idx) => {
+              if (!this.sprintChecks[this.getTaskKey(weekData.weekNum, dk, idx)]) allWeekDone = false;
+            });
+          });
+          if (allWeekDone) {
+            const header = document.getElementById('sprint-header');
+            if (header) fireConfetti(header);
+          }
+        }
+      }
+    }
   }
 
   // ─── BUDGET TRACKER ───────────────────────────────────────

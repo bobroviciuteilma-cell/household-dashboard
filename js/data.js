@@ -1369,3 +1369,505 @@ export const WEEK_DAYS = [
   },
 
 ];
+
+// ─────────────────────────────────────────────────────────────
+//  SPRINT PLAN — 98-Day Sprint for EA Workspace
+//  Start: March 9, 2026 (Day 1) → End: June 14, 2026 (Day 98)
+// ─────────────────────────────────────────────────────────────
+
+export const SPRINT_PLAN = {
+  startDate: '2026-03-09',
+  endDate: '2026-06-14',
+  phases: [
+    { id: 'A', name: 'Foundation',       startDay: 1,  endDay: 14, color: 'var(--sprint-phase-a)', bg: 'var(--sprint-phase-a-bg)' },
+    { id: 'B', name: 'Content Engine',   startDay: 15, endDay: 35, color: 'var(--sprint-phase-b)', bg: 'var(--sprint-phase-b-bg)' },
+    { id: 'C', name: 'Automation',       startDay: 36, endDay: 56, color: 'var(--sprint-phase-c)', bg: 'var(--sprint-phase-c-bg)' },
+    { id: 'D', name: 'YouTube + Scale',  startDay: 57, endDay: 98, color: 'var(--sprint-phase-d)', bg: 'var(--sprint-phase-d-bg)' },
+  ],
+  deliverables: [
+    { id: 1, name: 'Brand Identity',    phase: 'A' },
+    { id: 2, name: 'Social Guidelines', phase: 'B' },
+    { id: 3, name: 'Website',           phase: 'A' },
+    { id: 4, name: 'Substack',          phase: 'B' },
+    { id: 5, name: 'Twitter/X',         phase: 'B' },
+    { id: 6, name: 'YouTube',           phase: 'D' },
+    { id: 7, name: 'Agents',            phase: 'C' },
+    { id: 8, name: 'Configuration',     phase: 'A' },
+  ],
+  milestones: [
+    { day: 7,  label: 'TOV Document Complete' },
+    { day: 14, label: 'Brand Guidelines Finalized' },
+    { day: 21, label: 'Website v1 Live' },
+    { day: 35, label: 'First Substack + Twitter Active' },
+    { day: 56, label: 'Agents Operational' },
+    { day: 70, label: 'YouTube Channel Live' },
+    { day: 84, label: 'Full Content Pipeline Running' },
+    { day: 98, label: 'System Handoff Complete' },
+  ],
+  weeks: [
+    // ── WEEK 1 (Days 1-7) — Phase A: Foundation — Research & Setup ──
+    {
+      weekNum: 1, phase: 'A',
+      days: {
+        mon: { dayNum: 1, tasks: [
+          { text: 'Set up EA_Workspace folder structure', deliverable: 8 },
+          { text: 'Save sprint_brief.md to context/', deliverable: 8 },
+          { text: 'Install YouTube Transcript MCP', deliverable: 8 },
+        ]},
+        tue: { dayNum: 2, tasks: [
+          { text: 'Audit Jack Roberts Skool (structure map)', deliverable: 8 },
+          { text: 'Audit Nate Herk Skool (structure map)', deliverable: 8 },
+          { text: 'Create business_brain.md v1', deliverable: 1 },
+        ]},
+        wed: { dayNum: 3, tasks: [
+          { text: 'Complete Phase 2: YouTube audit (30 videos)', deliverable: 8 },
+          { text: 'Create master_synthesis.md', deliverable: 8 },
+          { text: 'Gap research: HeyGen / ElevenLabs / OBS', deliverable: 6 },
+        ]},
+        thu: { dayNum: 4, tasks: [
+          { text: 'Build Sprint tab in dashboard', deliverable: 8 },
+          { text: 'Gather Emi lecture transcripts (3-5)', deliverable: 1 },
+          { text: 'Download Segmentation Prompt from Jack Skool', deliverable: 1 },
+        ]},
+        fri: { dayNum: 5, tasks: [
+          { text: 'Run Segmentation Prompt on transcript #1', deliverable: 1 },
+          { text: 'Download Tone of Voice Prompt', deliverable: 1 },
+          { text: 'Emi session: Review business_brain.md', deliverable: 1 },
+        ]},
+        sat: { dayNum: 6, tasks: [
+          { text: 'Run Segmentation Prompt on transcript #2', deliverable: 1 },
+          { text: 'Install Frontend Design SKILL.md', deliverable: 8 },
+        ]},
+      },
+      sunday: { dayNum: 7, note: 'Light day (3hrs): Review + compile TOV document' },
+    },
+    // ── WEEK 2 (Days 8-14) — Phase A: Foundation — Brand Finalization ──
+    {
+      weekNum: 2, phase: 'A',
+      days: {
+        mon: { dayNum: 8, tasks: [
+          { text: 'Compile TOV document from segmentation results', deliverable: 1 },
+          { text: 'Test voice: generate sample LinkedIn post', deliverable: 1 },
+          { text: 'Install Skill Builder SKILL.md + reference.md', deliverable: 8 },
+        ]},
+        tue: { dayNum: 9, tasks: [
+          { text: 'Andrew Lane Mood Board Method: study transcript', deliverable: 1 },
+          { text: 'Generate mood board v1 in ChatGPT', deliverable: 1 },
+          { text: 'Extract hex codes via Coolors.co', deliverable: 1 },
+        ]},
+        wed: { dayNum: 10, tasks: [
+          { text: 'Emi session: review mood board + TOV document', deliverable: 1 },
+          { text: 'Generate mood board v2 (refined)', deliverable: 1 },
+          { text: 'Select font pairing (display + sans)', deliverable: 1 },
+        ]},
+        thu: { dayNum: 11, tasks: [
+          { text: 'Create brand_guidelines.md', deliverable: 1 },
+          { text: 'Apply Anti-Generic Guardrails to visual specs', deliverable: 1 },
+          { text: 'Download brain.md template from Jack Skool', deliverable: 8 },
+        ]},
+        fri: { dayNum: 12, tasks: [
+          { text: 'Emi session: final brand approval', deliverable: 1 },
+          { text: 'Begin website wireframe (Nick one-shot prompt)', deliverable: 3 },
+          { text: 'Download 8-Step Conversion Blueprint', deliverable: 3 },
+        ]},
+        sat: { dayNum: 13, tasks: [
+          { text: 'Website v1 build: landing page with brand system', deliverable: 3 },
+          { text: 'Set up Vercel deployment', deliverable: 3 },
+        ]},
+      },
+      sunday: { dayNum: 14, note: 'Milestone: Brand Guidelines Finalized' },
+    },
+    // ── WEEK 3 (Days 15-21) — Phase B: Content Engine — Website Polish ──
+    {
+      weekNum: 3, phase: 'B',
+      days: {
+        mon: { dayNum: 15, tasks: [
+          { text: 'Website v2: apply brand guidelines to all pages', deliverable: 3 },
+          { text: 'Add publications / research section to site', deliverable: 3 },
+          { text: 'Mobile responsive testing + fixes', deliverable: 3 },
+        ]},
+        tue: { dayNum: 16, tasks: [
+          { text: 'Website: add newsletter signup (Substack embed)', deliverable: 3 },
+          { text: 'Set up Substack account + configure branding', deliverable: 4 },
+          { text: 'Write Substack welcome email draft', deliverable: 4 },
+        ]},
+        wed: { dayNum: 17, tasks: [
+          { text: 'Emi session: review website v2 + Substack setup', deliverable: 3 },
+          { text: 'Website final fixes from Emi feedback', deliverable: 3 },
+          { text: 'Draft first Substack article outline', deliverable: 4 },
+        ]},
+        thu: { dayNum: 18, tasks: [
+          { text: 'Write first Substack article draft', deliverable: 4 },
+          { text: 'Set up Twitter/X profile: bio, banner, pinned post', deliverable: 5 },
+        ]},
+        fri: { dayNum: 19, tasks: [
+          { text: 'Emi session: review Substack draft + Twitter bio', deliverable: 4 },
+          { text: 'Create Twitter/X content templates (thread, insight, question)', deliverable: 5 },
+          { text: 'Deploy website v2 live', deliverable: 3 },
+        ]},
+        sat: { dayNum: 20, tasks: [
+          { text: 'Write first 3 Twitter/X threads (batch)', deliverable: 5 },
+          { text: 'Finalize + schedule Substack #1', deliverable: 4 },
+        ]},
+      },
+      sunday: { dayNum: 21, note: 'Milestone: Website v1 Live' },
+    },
+    // ── WEEK 4 (Days 22-28) — Phase B: Content Engine — Launch Content ──
+    {
+      weekNum: 4, phase: 'B',
+      days: {
+        mon: { dayNum: 22, tasks: [
+          { text: 'Publish Substack #1', deliverable: 4 },
+          { text: 'Post first Twitter/X thread', deliverable: 5 },
+          { text: 'LinkedIn profile optimization (headline, about, banner)', deliverable: 2 },
+        ]},
+        tue: { dayNum: 23, tasks: [
+          { text: 'Write LinkedIn article (repurpose Substack #1)', deliverable: 2 },
+          { text: 'Draft social branded guidelines doc', deliverable: 2 },
+          { text: 'Post Twitter/X thread #2', deliverable: 5 },
+        ]},
+        wed: { dayNum: 24, tasks: [
+          { text: 'Emi session: review first week of content + engagement', deliverable: 4 },
+          { text: 'Draft Substack #2 outline', deliverable: 4 },
+          { text: 'Post Twitter/X thread #3', deliverable: 5 },
+        ]},
+        thu: { dayNum: 25, tasks: [
+          { text: 'Write Substack #2 draft', deliverable: 4 },
+          { text: 'Create content calendar template (4 weeks out)', deliverable: 2 },
+        ]},
+        fri: { dayNum: 26, tasks: [
+          { text: 'Emi session: review Substack #2 + content calendar', deliverable: 4 },
+          { text: 'Batch write Twitter/X threads #4-6', deliverable: 5 },
+        ]},
+        sat: { dayNum: 27, tasks: [
+          { text: 'Finalize social branded guidelines doc', deliverable: 2 },
+          { text: 'Publish Substack #2', deliverable: 4 },
+        ]},
+      },
+      sunday: { dayNum: 28, note: 'Light day: Review analytics + engagement metrics' },
+    },
+    // ── WEEK 5 (Days 29-35) — Phase B: Content Engine — Pipeline ──
+    {
+      weekNum: 5, phase: 'B',
+      days: {
+        mon: { dayNum: 29, tasks: [
+          { text: 'Analyze first 2 weeks of content metrics', deliverable: 2 },
+          { text: 'Draft Substack #3 outline (data-driven topic)', deliverable: 4 },
+          { text: 'Post Twitter/X thread #4', deliverable: 5 },
+        ]},
+        tue: { dayNum: 30, tasks: [
+          { text: 'Write Substack #3 draft', deliverable: 4 },
+          { text: 'LinkedIn post #2 (repurpose best Twitter thread)', deliverable: 2 },
+        ]},
+        wed: { dayNum: 31, tasks: [
+          { text: 'Emi session: review content pipeline + plan automation', deliverable: 7 },
+          { text: 'Publish Substack #3', deliverable: 4 },
+          { text: 'Post Twitter/X threads #5-6', deliverable: 5 },
+        ]},
+        thu: { dayNum: 32, tasks: [
+          { text: 'Document content creation workflow (SOP)', deliverable: 2 },
+          { text: 'Batch write next 3 Twitter/X threads', deliverable: 5 },
+        ]},
+        fri: { dayNum: 33, tasks: [
+          { text: 'Emi session: record practice on-camera video', deliverable: 6 },
+          { text: 'Draft Substack #4 outline', deliverable: 4 },
+        ]},
+        sat: { dayNum: 34, tasks: [
+          { text: 'Write Substack #4 draft', deliverable: 4 },
+          { text: 'Plan YouTube channel structure (3 formats)', deliverable: 6 },
+        ]},
+      },
+      sunday: { dayNum: 35, note: 'Milestone: First Substack + Twitter Active' },
+    },
+    // ── WEEK 6 (Days 36-42) — Phase C: Automation — Claude Code Setup ──
+    {
+      weekNum: 6, phase: 'C',
+      days: {
+        mon: { dayNum: 36, tasks: [
+          { text: 'Install WAT CLAUDE.md framework', deliverable: 8 },
+          { text: 'Install Web Design CLAUDE.md', deliverable: 8 },
+          { text: 'Publish Substack #4', deliverable: 4 },
+        ]},
+        tue: { dayNum: 37, tasks: [
+          { text: 'Install Skill Builder SKILL.md + reference.md', deliverable: 8 },
+          { text: 'Install Video to Website SKILL.md', deliverable: 8 },
+          { text: 'Post Twitter/X weekly batch', deliverable: 5 },
+        ]},
+        wed: { dayNum: 38, tasks: [
+          { text: 'Emi session: review automation plan + content', deliverable: 7 },
+          { text: 'Create first custom workflow (content scheduler)', deliverable: 7 },
+          { text: 'Draft Substack #5 outline', deliverable: 4 },
+        ]},
+        thu: { dayNum: 39, tasks: [
+          { text: 'Build morning briefing agent v1', deliverable: 7 },
+          { text: 'Test morning briefing output quality', deliverable: 7 },
+        ]},
+        fri: { dayNum: 40, tasks: [
+          { text: 'Emi session: review morning briefing + Substack #5', deliverable: 7 },
+          { text: 'Write Substack #5 draft', deliverable: 4 },
+        ]},
+        sat: { dayNum: 41, tasks: [
+          { text: 'Build YouTube scout agent (trending topic monitor)', deliverable: 7 },
+          { text: 'Publish Substack #5', deliverable: 4 },
+        ]},
+      },
+      sunday: { dayNum: 42, note: 'Light day: Review agent outputs + iterate prompts' },
+    },
+    // ── WEEK 7 (Days 43-49) — Phase C: Automation — Agent Building ──
+    {
+      weekNum: 7, phase: 'C',
+      days: {
+        mon: { dayNum: 43, tasks: [
+          { text: 'Build overnight research agent (paper scanner)', deliverable: 7 },
+          { text: 'Build content pipeline agent (draft from notes)', deliverable: 7 },
+        ]},
+        tue: { dayNum: 44, tasks: [
+          { text: 'Test all agents end-to-end, fix edge cases', deliverable: 7 },
+          { text: 'Draft Substack #6 outline', deliverable: 4 },
+          { text: 'Post Twitter/X weekly batch', deliverable: 5 },
+        ]},
+        wed: { dayNum: 45, tasks: [
+          { text: 'Emi session: review agent outputs + approve samples', deliverable: 7 },
+          { text: 'Write Substack #6 draft', deliverable: 4 },
+        ]},
+        thu: { dayNum: 46, tasks: [
+          { text: 'Refine agent prompts based on Emi feedback', deliverable: 7 },
+          { text: 'Connect morning briefing to daily workflow', deliverable: 7 },
+        ]},
+        fri: { dayNum: 47, tasks: [
+          { text: 'Emi session: content review + book chapter outline', deliverable: 4 },
+          { text: 'Publish Substack #6', deliverable: 4 },
+        ]},
+        sat: { dayNum: 48, tasks: [
+          { text: 'LinkedIn post #3 (repurpose Substack highlight)', deliverable: 2 },
+          { text: 'Document agent architecture (for maintenance)', deliverable: 7 },
+        ]},
+      },
+      sunday: { dayNum: 49, note: 'Light day: Review agent logs + plan pipeline integration' },
+    },
+    // ── WEEK 8 (Days 50-56) — Phase C: Automation — Pipeline Integration ──
+    {
+      weekNum: 8, phase: 'C',
+      days: {
+        mon: { dayNum: 50, tasks: [
+          { text: 'Connect agents to Substack workflow', deliverable: 7 },
+          { text: 'Connect agents to Twitter/X workflow', deliverable: 7 },
+        ]},
+        tue: { dayNum: 51, tasks: [
+          { text: 'LinkedIn automation setup', deliverable: 7 },
+          { text: 'Draft Substack #7 outline (agent-assisted)', deliverable: 4 },
+          { text: 'Post Twitter/X weekly batch', deliverable: 5 },
+        ]},
+        wed: { dayNum: 52, tasks: [
+          { text: 'Emi session: approve automated content samples', deliverable: 7 },
+          { text: 'Full pipeline test run (end-to-end)', deliverable: 7 },
+        ]},
+        thu: { dayNum: 53, tasks: [
+          { text: 'Fix pipeline issues from test run', deliverable: 7 },
+          { text: 'Write Substack #7 draft', deliverable: 4 },
+        ]},
+        fri: { dayNum: 54, tasks: [
+          { text: 'Emi session: final agent review before YouTube phase', deliverable: 7 },
+          { text: 'Publish Substack #7', deliverable: 4 },
+        ]},
+        sat: { dayNum: 55, tasks: [
+          { text: 'Deploy Trigger.dev scheduled tasks (if applicable)', deliverable: 7 },
+          { text: 'Create agent maintenance runbook', deliverable: 7 },
+        ]},
+      },
+      sunday: { dayNum: 56, note: 'Milestone: Agents Operational' },
+    },
+    // ── WEEK 9 (Days 57-63) — Phase D: YouTube + Scale — Channel Setup ──
+    {
+      weekNum: 9, phase: 'D',
+      days: {
+        mon: { dayNum: 57, tasks: [
+          { text: 'Create YouTube channel, apply branding', deliverable: 6 },
+          { text: 'Design channel banner + profile in brand system', deliverable: 6 },
+          { text: 'Post Twitter/X weekly batch', deliverable: 5 },
+        ]},
+        tue: { dayNum: 58, tasks: [
+          { text: 'Plan first 5 video topics with Emi', deliverable: 6 },
+          { text: 'Create YouTube intro/outro template', deliverable: 6 },
+        ]},
+        wed: { dayNum: 59, tasks: [
+          { text: 'Emi session: record first on-camera video', deliverable: 6 },
+          { text: 'Draft Substack #8 outline', deliverable: 4 },
+        ]},
+        thu: { dayNum: 60, tasks: [
+          { text: 'Edit first video: cuts, branded overlays, captions', deliverable: 6 },
+          { text: 'Write Substack #8 draft', deliverable: 4 },
+        ]},
+        fri: { dayNum: 61, tasks: [
+          { text: 'Emi session: review video edit + approve for upload', deliverable: 6 },
+          { text: 'Publish Substack #8', deliverable: 4 },
+        ]},
+        sat: { dayNum: 62, tasks: [
+          { text: 'Upload first YouTube video', deliverable: 6 },
+          { text: 'Create YouTube description template + SEO tags', deliverable: 6 },
+        ]},
+      },
+      sunday: { dayNum: 63, note: 'Light day: Monitor YouTube analytics + engagement' },
+    },
+    // ── WEEK 10 (Days 64-70) — Phase D: YouTube — Multi-Format ──
+    {
+      weekNum: 10, phase: 'D',
+      days: {
+        mon: { dayNum: 64, tasks: [
+          { text: 'Set up HeyGen / Blotato AI avatar', deliverable: 6 },
+          { text: 'Create first AI avatar test video', deliverable: 6 },
+          { text: 'Post Twitter/X weekly batch', deliverable: 5 },
+        ]},
+        tue: { dayNum: 65, tasks: [
+          { text: 'Refine AI avatar: voice, style, branding', deliverable: 6 },
+          { text: 'OBS screen capture setup + test recording', deliverable: 6 },
+        ]},
+        wed: { dayNum: 66, tasks: [
+          { text: 'Emi session: review AI avatar + screen capture formats', deliverable: 6 },
+          { text: 'Record first screen capture explainer video', deliverable: 6 },
+        ]},
+        thu: { dayNum: 67, tasks: [
+          { text: 'Edit AI avatar video + screen capture video', deliverable: 6 },
+          { text: 'Draft Substack #9 outline', deliverable: 4 },
+        ]},
+        fri: { dayNum: 68, tasks: [
+          { text: 'Emi session: approve all 3 video formats', deliverable: 6 },
+          { text: 'Write + publish Substack #9', deliverable: 4 },
+        ]},
+        sat: { dayNum: 69, tasks: [
+          { text: 'Upload 2 more YouTube videos (avatar + screen capture)', deliverable: 6 },
+          { text: 'LinkedIn post #4 (video announcement)', deliverable: 2 },
+        ]},
+      },
+      sunday: { dayNum: 70, note: 'Milestone: YouTube Channel Live' },
+    },
+    // ── WEEK 11 (Days 71-77) — Phase D: Scale — Content Flywheel ──
+    {
+      weekNum: 11, phase: 'D',
+      days: {
+        mon: { dayNum: 71, tasks: [
+          { text: 'Create YouTube content calendar (4 weeks out)', deliverable: 6 },
+          { text: 'Batch record 2 on-camera videos', deliverable: 6 },
+          { text: 'Post Twitter/X weekly batch', deliverable: 5 },
+        ]},
+        tue: { dayNum: 72, tasks: [
+          { text: 'Edit + schedule video batch', deliverable: 6 },
+          { text: 'Create AI avatar video from latest research', deliverable: 6 },
+        ]},
+        wed: { dayNum: 73, tasks: [
+          { text: 'Emi session: content review + book chapter progress', deliverable: 6 },
+          { text: 'Cross-platform content repurposing (YT to Twitter)', deliverable: 5 },
+        ]},
+        thu: { dayNum: 74, tasks: [
+          { text: 'Draft Substack #10 outline', deliverable: 4 },
+          { text: 'Upload next YouTube video', deliverable: 6 },
+        ]},
+        fri: { dayNum: 75, tasks: [
+          { text: 'Emi session: review metrics + adjust strategy', deliverable: 2 },
+          { text: 'Write + publish Substack #10', deliverable: 4 },
+        ]},
+        sat: { dayNum: 76, tasks: [
+          { text: 'OBS screen capture: record explainer #2', deliverable: 6 },
+          { text: 'Analytics review across all platforms', deliverable: 2 },
+        ]},
+      },
+      sunday: { dayNum: 77, note: 'Light day: Review week + plan optimization' },
+    },
+    // ── WEEK 12 (Days 78-84) — Phase D: Scale — Optimization ──
+    {
+      weekNum: 12, phase: 'D',
+      days: {
+        mon: { dayNum: 78, tasks: [
+          { text: 'Analyze metrics across all platforms', deliverable: 2 },
+          { text: 'Optimize YouTube thumbnails + SEO', deliverable: 6 },
+          { text: 'Post Twitter/X weekly batch', deliverable: 5 },
+        ]},
+        tue: { dayNum: 79, tasks: [
+          { text: 'Refine content pipeline based on data', deliverable: 7 },
+          { text: 'Build interactive prototype #1 (book concept)', deliverable: 3 },
+        ]},
+        wed: { dayNum: 80, tasks: [
+          { text: 'Emi session: prototype review + book progress', deliverable: 3 },
+          { text: 'Draft Substack #11 outline', deliverable: 4 },
+        ]},
+        thu: { dayNum: 81, tasks: [
+          { text: 'Create interactive prototypes #2-3', deliverable: 3 },
+          { text: 'Write + publish Substack #11', deliverable: 4 },
+        ]},
+        fri: { dayNum: 82, tasks: [
+          { text: 'Emi session: review prototypes + content batch', deliverable: 3 },
+          { text: 'Upload 2 YouTube videos', deliverable: 6 },
+        ]},
+        sat: { dayNum: 83, tasks: [
+          { text: 'Create interactive prototypes #4-5', deliverable: 3 },
+          { text: 'LinkedIn post #5 (prototype preview)', deliverable: 2 },
+        ]},
+      },
+      sunday: { dayNum: 84, note: 'Milestone: Full Content Pipeline Running' },
+    },
+    // ── WEEK 13 (Days 85-91) — Phase D: Scale — Growth ──
+    {
+      weekNum: 13, phase: 'D',
+      days: {
+        mon: { dayNum: 85, tasks: [
+          { text: 'Guest outreach for cross-promotion (3 contacts)', deliverable: 5 },
+          { text: 'University licensing research + prospect list', deliverable: 4 },
+          { text: 'Post Twitter/X weekly batch', deliverable: 5 },
+        ]},
+        tue: { dayNum: 86, tasks: [
+          { text: 'Platform MVP scoping document', deliverable: 3 },
+          { text: 'Batch content production (next week ahead)', deliverable: 4 },
+        ]},
+        wed: { dayNum: 87, tasks: [
+          { text: 'Emi session: growth strategy + university contacts', deliverable: 4 },
+          { text: 'Draft Substack #12 outline', deliverable: 4 },
+        ]},
+        thu: { dayNum: 88, tasks: [
+          { text: 'Write + publish Substack #12', deliverable: 4 },
+          { text: 'Create interactive prototypes #6-7', deliverable: 3 },
+        ]},
+        fri: { dayNum: 89, tasks: [
+          { text: 'Emi session: review prototypes + plan handoff', deliverable: 3 },
+          { text: 'Upload 2 YouTube videos', deliverable: 6 },
+        ]},
+        sat: { dayNum: 90, tasks: [
+          { text: 'Documentation of all systems and processes', deliverable: 8 },
+          { text: 'LinkedIn post #6 (milestone update)', deliverable: 2 },
+        ]},
+      },
+      sunday: { dayNum: 91, note: 'Light day: Prepare handoff documentation' },
+    },
+    // ── WEEK 14 (Days 92-98) — Phase D: Scale — Handoff ──
+    {
+      weekNum: 14, phase: 'D',
+      days: {
+        mon: { dayNum: 92, tasks: [
+          { text: 'Final system documentation (all agents + workflows)', deliverable: 8 },
+          { text: 'Troubleshooting guide for all agents', deliverable: 7 },
+          { text: 'Post Twitter/X weekly batch', deliverable: 5 },
+        ]},
+        tue: { dayNum: 93, tasks: [
+          { text: 'Solo maintenance test run (simulate Emi-only week)', deliverable: 8 },
+          { text: 'Draft Substack #13 (final sprint article)', deliverable: 4 },
+        ]},
+        wed: { dayNum: 94, tasks: [
+          { text: 'Emi session: test run review + fix issues', deliverable: 8 },
+          { text: 'Write + publish Substack #13', deliverable: 4 },
+        ]},
+        thu: { dayNum: 95, tasks: [
+          { text: 'Fix any issues from maintenance test run', deliverable: 8 },
+          { text: 'Upload final YouTube videos of sprint', deliverable: 6 },
+        ]},
+        fri: { dayNum: 96, tasks: [
+          { text: 'Emi session: final review + celebration', deliverable: 8 },
+          { text: 'Compile final metrics report', deliverable: 2 },
+        ]},
+        sat: { dayNum: 97, tasks: [
+          { text: 'System handoff: transfer all credentials + access', deliverable: 8 },
+          { text: 'Create 30-day post-sprint maintenance calendar', deliverable: 8 },
+        ]},
+      },
+      sunday: { dayNum: 98, note: 'Milestone: System Handoff Complete' },
+    },
+  ],
+};

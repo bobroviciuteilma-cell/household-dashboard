@@ -87,6 +87,19 @@
   --sidebar-width: 240px;
   --header-height: 56px;
 
+  /* === Sprint Phases === */
+  --sprint-phase-a:    #6D4C41;   /* Foundation — warm brown */
+  --sprint-phase-a-bg: #EFEBE9;
+  --sprint-phase-b:    #1565C0;   /* Content Engine — blue */
+  --sprint-phase-b-bg: #E3F2FD;
+  --sprint-phase-c:    #2E7D32;   /* Automation — green */
+  --sprint-phase-c-bg: #E8F5E9;
+  --sprint-phase-d:    #C62828;   /* YouTube + Scale — red */
+  --sprint-phase-d-bg: #FFEBEE;
+  --sprint-today:      #FF6F00;   /* Amber highlight for today */
+  --sprint-today-bg:   #FFF3E0;
+  --sprint-done:       #2E7D32;
+
   /* === Borders & Shadows === */
   --radius-sm:  6px;
   --radius-md:  8px;
